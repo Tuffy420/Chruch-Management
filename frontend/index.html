@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GraceFlow — Modern Church Family Management Dashboard</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- Remix Icon (Modern Premium Icon Library) -->
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet">
+    <!-- Main Style Sheet -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Ambient Glowing Orbs -->
+    <div class="bg-orb bg-orb-1"></div>
+    <div class="bg-orb bg-orb-2"></div>
+    <div class="bg-orb bg-orb-3"></div>
+
+    <!-- Secure Login Portal -->
+    <div id="loginScreen" class="login-overlay">
+        <div class="login-box">
+            <div class="login-logo">
+                <div style="width: 48px; height: 48px; border-radius: 12px; background: var(--primary-gradient); display: flex; align-items: center; justify-content: center; font-size: 24px; color: white; margin-bottom: 12px; box-shadow: var(--shadow-glow);">
+                    <i class="ri-heart-3-line"></i>
+                </div>
+                <h2>GraceConnect</h2>
+                <span>Church Family Portal</span>
+            </div>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <input type="email" id="loginEmail" class="form-control" placeholder="admin@graceconnect.org" required value="admin@graceconnect.org">
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="loginPassword" class="form-control" placeholder="••••••••" required value="admin123">
+                </div>
+                <button type="submit" class="login-btn">Sign In to Dashboard</button>
+            </form>
+            <div class="login-footer">
+                <p>Protected by Spring Security & JWT encryption</p>
+                <p style="font-size:10px; margin-top:4px; opacity:0.6;">Preseeded: admin@graceconnect.org / admin123</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="app-container" style="display: none;">
+
+
+        <!-- ==========================================================================
+             1. LEFT SIDEBAR NAVIGATION
+             ========================================================================== -->
+        <aside class="sidebar" id="sidebar">
+            <div class="brand-section">
+                <div class="brand-logo-container">
+                    <img src="assets/graceflow_logo.png" alt="GraceFlow Logo" onerror="this.src='https://placehold.co/100/8b5cf6/ffffff?text=GF'">
+                </div>
+                <div class="brand-name">
+                    GraceFlow
+                    <span class="brand-subtitle">Church Manager</span>
+                </div>
+            </div>
+
+            <ul class="sidebar-menu">
+                <li class="menu-item active" data-page="dashboard">
+                    <a class="menu-item-link">
+                        <i class="ri-dashboard-3-line"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li class="menu-item" data-page="families">
+                    <a class="menu-item-link">
+                        <i class="ri-group-line"></i>
+                        <span>Families</span>
+                    </a>
+                </li>
+
+                <li class="menu-item" data-page="events">
+                    <a class="menu-item-link">
+                        <i class="ri-calendar-event-line"></i>
+                        <span>Calendar</span>
+                    </a>
+                </li>
+                <li class="menu-item" data-page="accounts">
+                    <a class="menu-item-link">
+                        <i class="ri-wallet-3-line"></i>
+                        <span>Accounts</span>
+                    </a>
+                </li>
+                <li class="menu-item" data-page="birthdays">
+                    <a class="menu-item-link">
+                        <i class="ri-cake-2-line"></i>
+                        <span>Birthdays</span>
+                    </a>
+                </li>
+                <li class="menu-item" data-page="marriage-anniversaries">
+                    <a class="menu-item-link">
+                        <i class="ri-hearts-line"></i>
+                        <span>Anniversaries</span>
+                    </a>
+                </li>
+                <li class="menu-item" data-page="reminders">
+                    <a class="menu-item-link">
+                        <i class="ri-notification-badge-line"></i>
+                        <span>Reminders</span>
+                    </a>
+                </li>
+                <li class="menu-item" data-page="reports">
+                    <a class="menu-item-link">
+                        <i class="ri-bar-chart-box-line"></i>
+                        <span>Reports</span>
+                    </a>
+                </li>
+                <li class="menu-item" data-page="settings">
+                    <a class="menu-item-link">
+                        <i class="ri-settings-4-line"></i>
+                        <span>Settings</span>
+                    </a>
+                </li>
+            </ul>
+
+            <!-- Bible Verse Widget -->
+            <div class="bible-verse-widget">
+                <div class="bible-title">
+                    <i class="ri-book-open-line"></i>
+                    <span>Daily Scripture</span>
+                </div>
+                <p class="bible-text" id="bibleText">“Let all that you do be done in love.”</p>
+                <span class="bible-ref" id="bibleRef">1 Corinthians 16:14</span>
+            </div>
+        </aside>
+
+        <!-- ==========================================================================
+             2. MAIN DASHBOARD CONTENT AREA
+             ========================================================================== -->
+        <main class="main-dashboard" id="mainDashboard">
+            
+            <!-- Top Navigation Bar -->
+            <header class="top-navbar">
+                <div class="nav-welcome">
+                    <h1 id="welcomeTitle">Welcome, Pastor Marcus</h1>
+                    <p id="navbarDate">Sunday, May 25, 2026 • 09:50 AM</p>
+                </div>
+
+                <div class="nav-actions">
+                    <!-- Modern Search Bar -->
+                    <div class="search-container">
+                        <input type="text" class="search-input" placeholder="Search families, events, funds..." id="searchInput">
+                        <i class="ri-search-line"></i>
+                    </div>
+
+                    <!-- Notification Button -->
+                    <div class="notification-btn" id="notificationBtn">
+                        <i class="ri-notification-3-line"></i>
+                        <span class="notification-badge"></span>
+                    </div>
+
+                    <!-- Admin Profile Button -->
+                    <div class="profile-btn" id="profileBtn">
+                        <div class="profile-avatar">
+                            <img src="assets/admin_avatar.png" alt="Admin Avatar" onerror="this.src='https://placehold.co/100/3b82f6/ffffff?text=MV'">
+                        </div>
+                        <div class="profile-info">
+                            <span class="profile-name">Pastor Marcus Vance</span>
+                            <span class="profile-role">Lead Pastor</span>
+                        </div>
+                        <i class="ri-arrow-down-s-line" style="font-size: 14px; margin-left: 2px; color: var(--text-light)"></i>
+                    </div>
+                </div>
+            </header>
+
+            <!-- DASHBOARD SCREEN (ACTIVE STATE BY DEFAULT) -->
+            <div class="dashboard-view" id="dashboardView">
+                
+                <!-- Metrics Grid Card Row -->
+                <section class="metrics-grid">
+                    <div class="metric-card purple">
+                        <div class="metric-header">
+                            <span class="metric-title">Total Families</span>
+                            <div class="metric-icon-box">
+                                <i class="ri-group-line"></i>
+                            </div>
+                        </div>
+                        <div class="metric-body">
+                            <span class="metric-value" id="countFamilies">--</span>
+                            <span class="metric-trend up"><i class="ri-arrow-up-line"></i> --%</span>
+                        </div>
+                        <span class="metric-footer">Active in church congregation</span>
+                    </div>
+
+                    <div class="metric-card blue">
+                        <div class="metric-header">
+                            <span class="metric-title">Total Members</span>
+                            <div class="metric-icon-box">
+                                <i class="ri-user-heart-line"></i>
+                            </div>
+                        </div>
+                        <div class="metric-body">
+                            <span class="metric-value" id="countMembers">--</span>
+                            <span class="metric-trend up"><i class="ri-arrow-up-line"></i> --%</span>
+                        </div>
+                        <span class="metric-footer">Baptized and registered members</span>
+                    </div>
+
+                    <div class="metric-card teal">
+                        <div class="metric-header">
+                            <span class="metric-title">Upcoming Birthdays</span>
+                            <div class="metric-icon-box">
+                                <i class="ri-cake-2-line"></i>
+                            </div>
+                        </div>
+                        <div class="metric-body">
+                            <span class="metric-value" id="countBirthdays">--</span>
+                            <span class="metric-trend neutral"><i class="ri-calendar-line"></i> This Month</span>
+                        </div>
+                        <span class="metric-footer">Congregation birthdays in current month</span>
+                    </div>
+
+                    <div class="metric-card rose">
+                        <div class="metric-header">
+                            <span class="metric-title">Treasury Balance</span>
+                            <div class="metric-icon-box">
+                                <i class="ri-bank-card-line"></i>
+                            </div>
+                        </div>
+                        <div class="metric-body">
+                            <span class="metric-value" id="countTreasury">₹0.00</span>
+                            <span class="metric-trend neutral"><i class="ri-wallet-line"></i> Net Balance</span>
+                        </div>
+                        <span class="metric-footer">Total operating funds available</span>
+                    </div>
+
+                    <div class="metric-card amber">
+                        <div class="metric-header">
+                            <span class="metric-title">Upcoming Functions</span>
+                            <div class="metric-icon-box">
+                                <i class="ri-calendar-event-line"></i>
+                            </div>
+                        </div>
+                        <div class="metric-body">
+                            <span class="metric-value" id="countFunctions">--</span>
+                            <span class="metric-trend neutral"><i class="ri-sparkling-line"></i> Upcoming</span>
+                        </div>
+                        <span class="metric-footer">Services, fellowship and events scheduled</span>
+                    </div>
+
+                    <div class="metric-card purple">
+                        <div class="metric-header">
+                            <span class="metric-title">Monthly Donations</span>
+                            <div class="metric-icon-box">
+                                <i class="ri-wallet-3-line"></i>
+                            </div>
+                        </div>
+                        <div class="metric-body">
+                            <span class="metric-value" id="countDonations">₹0.00</span>
+                            <span class="metric-trend"><i class="ri-arrow-up-line"></i> --%</span>
+                        </div>
+                        <span class="metric-footer">Tithes, offerings & missionary funds</span>
+                    </div>
+                </section>
+
+                <!-- Core Grid Area: Line Graph and Account Summary -->
+                <section class="dashboard-grid-row-1">
+                    
+                    <!-- Line Graph Card -->
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <div class="chart-title-box">
+                                <h2>Income vs Expense Analysis</h2>
+                                <p>Financial flow comparison (Last 6 Months)</p>
+                            </div>
+                            <div class="chart-legends">
+                                <div class="legend-item">
+                                    <span class="legend-dot income"></span>
+                                    <span>Donations / Income</span>
+                                </div>
+                                <div class="legend-item">
+                                    <span class="legend-dot expense"></span>
+                                    <span>Operating Expense</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="chart-canvas-container">
+                            <canvas id="chartCanvas"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Account Summary Card -->
+                    <div class="summary-card">
+                        <div class="summary-header">
+                            <h2>Fund Breakdown</h2>
+                            <p>Current balance status across accounts</p>
+                        </div>
+                        <div class="balance-box">
+                            <span class="balance-label">Total Treasury Balance</span>
+                            <div class="balance-value" id="treasuryBalance">₹0.00</div>
+                        </div>
+                        <div class="summary-list">
+                            <div class="summary-item">
+                                <span class="summary-item-label">
+                                    <i class="ri-music-2-line" style="color: var(--primary-rose);"></i>
+                                    Sunday Worship Offering
+                                </span>
+                                <span class="summary-item-value" id="balanceWorship">₹0.00</span>
+                            </div>
+                            <div class="summary-item">
+                                <span class="summary-item-label">
+                                    <i class="ri-heart-3-line" style="color: var(--primary-purple);"></i>
+                                    General Fund
+                                </span>
+                                <span class="summary-item-value" id="balanceGeneral">₹0.00</span>
+                            </div>
+                            <div class="summary-item">
+                                <span class="summary-item-label">
+                                    <i class="ri-compass-3-line" style="color: var(--primary-blue);"></i>
+                                    Missions & Outreach
+                                </span>
+                                <span class="summary-item-value" id="balanceMissions">₹0.00</span>
+                            </div>
+                            <div class="summary-item">
+                                <span class="summary-item-label">
+                                    <i class="ri-home-4-line" style="color: var(--primary-teal);"></i>
+                                    Building Maintenance
+                                </span>
+                                <span class="summary-item-value" id="balanceMaintenance">₹0.00</span>
+                            </div>
+                            <div class="summary-item">
+                                <span class="summary-item-label">
+                                    <i class="ri-goblet-line" style="color: var(--primary-rose);"></i>
+                                    Charity & Welfare
+                                </span>
+                                <span class="summary-item-value" id="balanceCharity">₹0.00</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </section>
+
+                <!-- Recent Activities Timeline Card -->
+                <section class="activities-card">
+                    <div class="activities-header">
+                        <h2>Recent Congregation Activities</h2>
+                        <button class="activities-btn" id="refreshActivityBtn">
+                            <i class="ri-refresh-line"></i> Refresh Timeline
+                        </button>
+                    </div>
+                    <div class="timeline" id="timelineContainer">
+                        <!-- Timeline Items populated dynamically by app.js -->
+                        <div style="padding: 16px; color: var(--text-light); text-align: center; width: 100%;">
+                            <i class="ri-loader-4-line" style="font-size: 24px; display: inline-block; animation: spin 1.5s infinite linear;"></i>
+                            <p style="margin-top: 8px; font-size: 13px;">Loading congregation activities...</p>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- DYNAMIC SCREEN: FAMILIES -->
+            <div class="subpage-view" id="familiesView">
+                <div class="subpage-header">
+                    <h2>Families Directory</h2>
+                    <div class="subpage-controls">
+                        <button class="subpage-btn" id="filterFamiliesBtn"><i class="ri-filter-3-line"></i> Filter</button>
+                        <button class="subpage-btn primary" id="addFamilyNavbarBtn"><i class="ri-add-line"></i> Add Family</button>
+                    </div>
+                </div>
+                <div class="records-grid" id="familiesListContainer">
+                    <!-- Families Dynamic List Populated by app.js -->
+                </div>
+            </div>
+
+
+
+            <!-- DYNAMIC SCREEN: EVENTS -->
+            <div class="subpage-view" id="eventsView">
+                <div class="subpage-header">
+                    <h2>Calendar & Events</h2>
+                    <div class="subpage-controls">
+                        <div class="view-toggle-group" style="display: flex; background: rgba(0,0,0,0.05); padding: 4px; border-radius: 8px; gap: 4px; margin-right: 12px;">
+                            <button class="subpage-btn active" id="eventViewCalendarBtn" style="padding: 6px 12px; font-size: 12px; border: none; background: transparent; cursor: pointer;"><i class="ri-calendar-2-line"></i> Calendar</button>
+                            <button class="subpage-btn" id="eventViewListBtn" style="padding: 6px 12px; font-size: 12px; border: none; background: transparent; cursor: pointer;"><i class="ri-list-check-2"></i> List</button>
+                        </div>
+                        <button class="subpage-btn primary" id="scheduleEventBtn"><i class="ri-calendar-event-line"></i> Schedule Event</button>
+                    </div>
+                </div>
+                <div class="records-grid" id="eventsListContainer" style="display: none;">
+                    <!-- Events Dynamic List Populated by app.js -->
+                </div>
+                <div id="eventsCalendarContainer" style="display: block; width: 100%;">
+                    <!-- Events Gorgeous Calendar Grid -->
+                </div>
+            </div>
+
+
+            <!-- DYNAMIC SCREEN: ACCOUNTS -->
+            <div class="subpage-view" id="accountsView">
+                <div class="subpage-header">
+                    <h2>Financial Ledgers</h2>
+                    <div class="subpage-controls">
+                        <button class="subpage-btn primary" id="recordDonationNavbarBtn"><i class="ri-coins-line"></i> Record Donation</button>
+                    </div>
+                </div>
+                <div class="records-grid" id="accountsListContainer">
+                    <!-- Accounts Ledger List -->
+                </div>
+            </div>
+
+            <!-- DYNAMIC SCREEN: BIRTHDAYS -->
+            <div class="subpage-view" id="birthdaysView">
+                <div class="subpage-header">
+                    <h2>Birthdays Directory</h2>
+                </div>
+                <div class="records-grid" id="birthdaysListContainer">
+                    <!-- Birthdays List -->
+                </div>
+            </div>
+
+            <!-- DYNAMIC SCREEN: MARRIAGE ANNIVERSARIES -->
+            <div class="subpage-view" id="marriageView">
+                <div class="subpage-header">
+                    <h2>Marriage Anniversaries</h2>
+                </div>
+                <div class="records-grid" id="anniversariesListContainer">
+                    <!-- Anniversaries List -->
+                </div>
+            </div>
+
+            <!-- DYNAMIC SCREEN: REMINDERS -->
+            <div class="subpage-view" id="remindersView">
+                <div class="subpage-header">
+                    <h2>Action Reminders</h2>
+                </div>
+                <div class="records-grid" id="remindersListContainer">
+                    <!-- Reminders List -->
+                </div>
+            </div>
+
+            <!-- DYNAMIC SCREEN: REPORTS -->
+            <div class="subpage-view" id="reportsView">
+                <div class="subpage-header">
+                    <h2>Analytical Reports</h2>
+                </div>
+                <div class="records-grid" id="reportsListContainer">
+                    <!-- Analytical Reports Mock -->
+                </div>
+            </div>
+
+            <!-- DYNAMIC SCREEN: SETTINGS -->
+            <div class="subpage-view" id="settingsView">
+                <div class="subpage-header">
+                    <h2>Dashboard Settings</h2>
+                </div>
+                <div class="records-grid" id="settingsListContainer">
+                    <!-- Settings Panel Renders -->
+                </div>
+            </div>
+
+        </main>
+
+        <!-- ==========================================================================
+             3. RIGHT SIDEBAR WIDGETS COLUMN
+             ========================================================================== -->
+        <aside class="widgets-panel">
+            
+            <!-- Quick Actions Panel -->
+            <section class="quick-actions-panel">
+                <div class="widget-section-header">
+                    <h3><i class="ri-flashlight-line"></i> Quick Actions</h3>
+                </div>
+                <div class="quick-actions-widget">
+                    <div class="actions-list">
+                        <button class="action-btn purple" id="quickActionAddFamily">
+                            <i class="ri-group-line"></i>
+                            <span>Add Family</span>
+                        </button>
+                        <button class="action-btn blue" id="quickActionRecordDonation">
+                            <i class="ri-hand-coin-line"></i>
+                            <span>Donation</span>
+                        </button>
+                        <button class="action-btn rose" id="quickActionScheduleEvent">
+                            <i class="ri-calendar-line"></i>
+                            <span>Add Event</span>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Calendar Widget -->
+            <section class="calendar-panel">
+                <div class="widget-section-header">
+                    <h3><i class="ri-calendar-todo-line"></i> Dynamic Calendar</h3>
+                </div>
+                <div class="calendar-widget">
+                    <div class="calendar-header">
+                        <span class="calendar-month-year" id="calendarMonthYear">May 2026</span>
+                        <div class="calendar-navs">
+                            <button class="calendar-nav-btn" id="prevMonthBtn"><i class="ri-arrow-left-s-line"></i></button>
+                            <button class="calendar-nav-btn" id="nextMonthBtn"><i class="ri-arrow-right-s-line"></i></button>
+                        </div>
+                    </div>
+                    <div class="calendar-days-grid">
+                        <div class="calendar-day-label">S</div>
+                        <div class="calendar-day-label">M</div>
+                        <div class="calendar-day-label">T</div>
+                        <div class="calendar-day-label">W</div>
+                        <div class="calendar-day-label">T</div>
+                        <div class="calendar-day-label">F</div>
+                        <div class="calendar-day-label">S</div>
+                    </div>
+                    <div class="calendar-dates-grid" id="calendarDatesGrid">
+                        <!-- Dates rendered dynamically by app.js -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Reminders Widget List (Birthdays / Anniversaries tabs) -->
+            <section class="reminders-panel">
+                <div class="widget-section-header">
+                    <h3><i class="ri-alarm-warning-line"></i> Celebrations</h3>
+                </div>
+                <div class="reminders-widget">
+                    <div class="mini-tabs">
+                        <button class="mini-tab active" id="celebrationTabBirthdays">Birthdays</button>
+                        <button class="mini-tab" id="celebrationTabAnniversaries">Anniversaries</button>
+                    </div>
+                    <div class="reminder-list" id="celebrationList">
+                        <!-- Reminders populated dynamically by app.js -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Upcoming Church Functions -->
+            <section class="functions-panel">
+                <div class="widget-section-header">
+                    <h3><i class="ri-shake-hands-line"></i> Upcoming Services</h3>
+                </div>
+                <div class="functions-widget">
+                    <div class="functions-list" id="upcomingFunctionsWidgetList">
+                        <!-- Dynamic Functions Populated by app.js -->
+                        <div style="padding: 16px; color: var(--text-light); text-align: center; width: 100%;">
+                            <i class="ri-loader-4-line" style="font-size: 20px; display: inline-block; animation: spin 1.5s infinite linear;"></i>
+                            <p style="margin-top: 8px; font-size: 12px;">Loading upcoming services...</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </aside>
+
+        <!-- ==========================================================================
+             4. MODALS & POPUPS
+             ========================================================================== -->
+        
+        <!-- Modal: Add Family -->
+        <div class="modal-overlay" id="addFamilyModal">
+            <div class="modal-content">
+                <button class="modal-close-btn" data-close="addFamilyModal"><i class="ri-close-line"></i></button>
+                <div class="modal-header">
+                    <h3>Add New Family</h3>
+                    <p>Register a new family household in the church directory</p>
+                </div>
+                <form id="addFamilyForm">
+                    <div class="form-group">
+                        <label for="familyName">Family Last Name / Household</label>
+                        <input type="text" class="form-control" id="familyName" required placeholder="e.g. Miller, Henderson">
+                    </div>
+                    <div class="form-group">
+                        <label for="familyAddress">Home Address</label>
+                        <input type="text" class="form-control" id="familyAddress" required placeholder="e.g. 742 Evergreen Terrace, Springfield">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="familyEmail">Primary Contact Email</label>
+                            <input type="email" class="form-control" id="familyEmail" required placeholder="name@example.com">
+                        </div>
+                        <div class="form-group">
+                            <label for="familyPhone">Primary Contact Phone</label>
+                            <input type="tel" class="form-control" id="familyPhone" required placeholder="(555) 019-2834">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group checkbox-toggle-group" style="margin-top: 15px;">
+                        <label class="switch-container" style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                            <input type="checkbox" id="toggleAddMembers" style="width: 18px; height: 18px; cursor: pointer;">
+                            <span class="switch-label" style="font-weight: 500; font-size: 14px; color: var(--text-muted);">Add members to this family immediately</span>
+                        </label>
+                    </div>
+                    
+                    <div id="addMembersSection" style="display: none; border-top: 1px solid var(--border-color); padding-top: 15px; margin-top: 15px;">
+                        <h4 style="margin-bottom: 12px; font-weight: 600; font-size: 14px; color: var(--primary-purple);">First Family Member Details</h4>
+                        <div class="form-row" style="display: flex; gap: 15px;">
+                            <div class="form-group" style="flex: 1;">
+                                <label for="famMemberFirstName">First Name</label>
+                                <input type="text" class="form-control" id="famMemberFirstName" placeholder="e.g. John, Grace">
+                            </div>
+                            <div class="form-group" style="flex: 1;">
+                                <label for="famMemberLastName">Last Name</label>
+                                <input type="text" class="form-control" id="famMemberLastName" placeholder="e.g. Miller, Smith">
+                            </div>
+                        </div>
+                        <div class="form-row" style="display: flex; gap: 15px; margin-top: 10px;">
+                            <div class="form-group" style="flex: 1;">
+                                <label for="famMemberDob">Date of Birth</label>
+                                <input type="date" class="form-control" id="famMemberDob">
+                            </div>
+                            <div class="form-group" style="flex: 1;">
+                                <label for="famMemberGender">Gender</label>
+                                <select class="form-control" id="famMemberGender">
+                                    <option value="">Select Gender</option>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-row" style="display: flex; gap: 15px; margin-top: 10px;">
+                            <div class="form-group" style="flex: 1;">
+                                <label for="famMemberMarriageStatus">Marriage Status</label>
+                                <select class="form-control" id="famMemberMarriageStatus">
+                                    <option value="Single">Single</option>
+                                    <option value="Married">Married</option>
+                                    <option value="Widowed">Widowed</option>
+                                </select>
+                            </div>
+                            <div class="form-group" style="flex: 1;">
+                                <label for="famMemberBaptismStatus">Baptism Status</label>
+                                <select class="form-control" id="famMemberBaptismStatus">
+                                    <option value="Unbaptized">Unbaptized</option>
+                                    <option value="Baptized">Baptized</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="modal-footer">
+                        <button type="button" class="subpage-btn" data-close="addFamilyModal">Cancel</button>
+                        <button type="submit" class="subpage-btn primary">Create Household</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Modal: Add Member -->
+        <div class="modal-overlay" id="addMemberModal">
+            <div class="modal-content">
+                <button class="modal-close-btn" data-close="addMemberModal"><i class="ri-close-line"></i></button>
+                <div class="modal-header">
+                    <h3>Add New Member</h3>
+                    <p>Add an individual member to a registered household family</p>
+                </div>
+                <form id="addMemberForm">
+                    <div class="form-group">
+                        <label for="memberFirstName">First Name</label>
+                        <input type="text" class="form-control" id="memberFirstName" required placeholder="e.g. John, Grace">
+                    </div>
+                    <div class="form-group">
+                        <label for="memberLastName">Last Name</label>
+                        <input type="text" class="form-control" id="memberLastName" required placeholder="e.g. Miller, Smith">
+                    </div>
+                    <div class="form-group">
+                        <label for="memberFamilyRef">Household Family</label>
+                        <select class="form-control" id="memberFamilyRef" required>
+                            <!-- Populated with families -->
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="memberDob">Date of Birth</label>
+                            <input type="date" class="form-control" id="memberDob" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="memberGender">Gender</label>
+                            <select class="form-control" id="memberGender" required>
+                                <option value="">Select Gender</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="subpage-btn" data-close="addMemberModal">Cancel</button>
+                        <button type="submit" class="subpage-btn primary">Add Roster Member</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+
+
+        <!-- Modal: Record Donation -->
+        <div class="modal-overlay" id="recordDonationModal">
+            <div class="modal-content">
+                <button class="modal-close-btn" data-close="recordDonationModal"><i class="ri-close-line"></i></button>
+                <div class="modal-header">
+                    <h3>Record Financial Contribution</h3>
+                    <p>Register tithes, outreach support, or general building donations</p>
+                </div>
+                <form id="recordDonationForm">
+                    <div class="form-group">
+                        <label for="donationMember">Contributor Name</label>
+                        <select class="form-control" id="donationMember" required>
+                            <!-- Populated with members -->
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="donationAmount">Amount (₹)</label>
+                            <input type="number" class="form-control" id="donationAmount" required min="1" step="0.01" placeholder="0.00">
+                        </div>
+                        <div class="form-group">
+                            <label for="donationFund">Designated Account Fund</label>
+                            <select class="form-control" id="donationFund" required>
+                                <option value="Sunday Worship Offering">Sunday Worship Offering</option>
+                                <option value="General Fund">General Fund</option>
+                                <option value="Missions & Outreach">Missions & Outreach</option>
+                                <option value="Building Maintenance">Building Maintenance</option>
+                                <option value="Charity & Welfare">Charity & Welfare</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="donationNotes">Contribution Note / Memo (Optional)</label>
+                        <input type="text" class="form-control" id="donationNotes" placeholder="e.g. Annual tithe, Youth camp sponsorship">
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="subpage-btn" data-close="recordDonationModal">Cancel</button>
+                        <button type="submit" class="subpage-btn primary">Record Transaction</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Modal: Add Event -->
+        <div class="modal-overlay" id="addEventModal">
+            <div class="modal-content">
+                <button class="modal-close-btn" data-close="addEventModal"><i class="ri-close-line"></i></button>
+                <div class="modal-header">
+                    <h3>Schedule Church Function</h3>
+                    <p>Define a new service worship, charity drive, or social gathering</p>
+                </div>
+                <form id="addEventForm">
+                    <div class="form-group">
+                        <label for="eventTitle">Function Title</label>
+                        <input type="text" class="form-control" id="eventTitle" required placeholder="e.g. Choir Rehearsal, Youth Night">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="eventDate">Date</label>
+                            <input type="date" class="form-control" id="eventDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="eventCategory">Category</label>
+                            <select class="form-control" id="eventCategory" required>
+                                <option value="Service">Service</option>
+                                <option value="Fellowship">Fellowship</option>
+                                <option value="Charity">Charity</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="eventTime">Start Time</label>
+                            <input type="time" class="form-control" id="eventTime" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="eventLocation">Location / Hall</label>
+                            <input type="text" class="form-control" id="eventLocation" required placeholder="e.g. Main Hall, Fellowship Room">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="subpage-btn" data-close="addEventModal">Cancel</button>
+                        <button type="submit" class="subpage-btn primary">Lock Schedule</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Toast Notifications Panel -->
+        <div class="toast-container" id="toastContainer">
+            <!-- Dynamically populated toasts -->
+        </div>
+
+    </div>
+
+    <!-- Script Application Logic -->
+    <script src="app.js"></script>
+</body>
+</html>
