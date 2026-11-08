@@ -313,7 +313,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const memRes = await apiRequest('/members?size=200');
             const memberSelect = document.getElementById('donationMember');
             if (memberSelect && memRes.data && memRes.data.content) {
-                memberSelect.innerHTML = memRes.data.content.map(mem => `<option value="${mem.firstName} ${mem.lastName}">${mem.firstName} ${mem.lastName}</option>`).join('');
+                const options = [
+                    '<option value="General Sunday Congregation">General Sunday Congregation (Basket Collection)</option>',
+                    ...memRes.data.content.map(mem => `<option value="${mem.firstName} ${mem.lastName}">${mem.firstName} ${mem.lastName}</option>`),
+                    '<option value="Anonymous / Other Giver">Anonymous / Other Giver</option>'
+                ];
+                memberSelect.innerHTML = options.join('');
             }
         } catch (e) {
             console.error('Dropdown refresh error', e);
@@ -741,55 +746,113 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // Fetch Accounts ledger
+    // ==========================================================================
+    // CHURCH FINANCIAL LEDGER & OFFERINGS / EXPENSES ENGINE
+    // ==========================================================================
+
+    const OFFERING_CATEGORIES = [
+        'Sunday Worship Offering',
+        'Tithe (10%)',
+        'Thanksgiving Offering',
+        'Youth & Sunday School Offering',
+        'Building & Sanctuary Fund',
+        'Missions & Outreach Offering',
+        'Harvest Festival Offering',
+        'Charity & Welfare Fund'
+    ];
+
+    const EXPENSE_CATEGORIES = [
+        'Electricity & Utility Bills',
+        'Sanctuary Maintenance & Repairs',
+        'Pastor Honorarium & Staff Allowance',
+        'Guest Preacher Honorarium',
+        'Worship Sound, Audio & Media Equipment',
+        'Fellowship Refreshments & Agape Meal',
+        'Poor Relief & Benevolence Aid',
+        'Sunday School Books, Bibles & Literature',
+        'General Church Operating Expense'
+    ];
+
+    let currentFinancialFilter = 'all'; // all, INCOME, EXPENSE
+
+    // Fetch Accounts ledger with live KPI aggregation and filtering
     async function fetchAccountsTab(search = '') {
         const container = document.getElementById('accountsListContainer');
         if (!container) return;
         try {
-            const json = await apiRequest('/accounts?size=200&sortBy=date&sortDir=desc');
+            const json = await apiRequest('/accounts?size=300&sortBy=date&sortDir=desc');
             let transactions = json.data.content;
+            state.transactions = transactions;
 
-            // Filter ledger transactions locally
+            // Compute ledger summary aggregates
+            let totalIncome = 0;
+            let totalExpense = 0;
+            transactions.forEach(t => {
+                if (t.type === 'INCOME') totalIncome += (t.amount || 0);
+                else if (t.type === 'EXPENSE') totalExpense += (t.amount || 0);
+            });
+
+            const incomeEl = document.getElementById('ledgerTotalIncome');
+            const expenseEl = document.getElementById('ledgerTotalExpense');
+            const balanceEl = document.getElementById('ledgerNetBalance');
+            if (incomeEl) incomeEl.textContent = `₹${totalIncome.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
+            if (expenseEl) expenseEl.textContent = `₹${totalExpense.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
+            if (balanceEl) {
+                const net = totalIncome - totalExpense;
+                balanceEl.textContent = `₹${net.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
+                balanceEl.style.color = net >= 0 ? 'var(--primary-teal)' : 'var(--primary-rose)';
+            }
+
+            // Apply financial type filter
+            if (currentFinancialFilter !== 'all') {
+                transactions = transactions.filter(t => t.type === currentFinancialFilter);
+            }
+
+            // Apply text search filter
             if (search.trim() !== '') {
                 const term = search.toLowerCase().trim();
                 transactions = transactions.filter(t => 
                     (t.memberName && t.memberName.toLowerCase().includes(term)) ||
-                    t.fund.toLowerCase().includes(term) ||
-                    t.type.toLowerCase().includes(term) ||
+                    (t.fund && t.fund.toLowerCase().includes(term)) ||
+                    (t.type && t.type.toLowerCase().includes(term)) ||
                     (t.notes && t.notes.toLowerCase().includes(term))
                 );
             }
-
-            state.transactions = transactions;
 
             if (transactions.length === 0) {
                 container.innerHTML = `
                     <div style="padding: 40px 24px; text-align: center; color: var(--text-light); width: 100%;">
                         <i class="ri-search-eye-line" style="font-size: 38px; color: var(--primary-purple); display: block; margin-bottom: 12px; opacity: 0.7;"></i>
-                        <p style="font-size: 14px; font-weight: 500;">No ledger transactions matched your search filter.</p>
+                        <p style="font-size: 14px; font-weight: 500;">No transactions found matching your criteria.</p>
                     </div>
                 `;
                 return;
             }
 
             container.innerHTML = transactions.map(t => {
-                const color = t.type === 'INCOME' ? 'var(--primary-teal)' : 'var(--primary-rose)';
-                const bg = t.type === 'INCOME' ? 'rgba(13, 148, 136, 0.08)' : 'rgba(244, 63, 94, 0.08)';
-                const symbol = t.type === 'INCOME' ? '+' : '-';
+                const isIncome = t.type === 'INCOME';
+                const color = isIncome ? 'var(--primary-teal)' : 'var(--primary-rose)';
+                const bg = isIncome ? 'rgba(13, 148, 136, 0.08)' : 'rgba(244, 63, 94, 0.08)';
+                const symbol = isIncome ? '+' : '-';
+                const icon = isIncome ? 'ri-hand-coin-line' : 'ri-shopping-cart-2-line';
                 return `
                     <div class="records-card">
                         <div class="record-avatar" style="background: ${bg}; display: flex; align-items: center; justify-content: center; font-size: 22px; color: ${color}">
-                            <i class="ri-coin-line"></i>
+                            <i class="${icon}"></i>
                         </div>
-                        <div class="record-info">
-                            <span class="record-title">${t.memberName || 'General Vendor'}</span>
-                            <span class="record-subtitle"><i class="ri-wallet-3-line"></i> ${t.fund}</span>
-                            <span class="record-subtitle" style="display:block; margin-top:2px;">Notes: ${t.notes} • Date: ${t.date}</span>
-                            <span class="record-tag" style="background: ${bg}; color: ${color}; font-weight: 700; font-size: 11px;">
-                                ${symbol}₹${t.amount.toFixed(2)}
-                            </span>
-                            <div style="margin-top:12px; display:flex; gap:8px;">
-                                <button class="subpage-btn" style="padding:4px 8px; font-size:11px;" onclick="deleteTransactionRecord('${t.id}')"><i class="ri-delete-bin-line"></i> Delete</button>
+                        <div class="record-info" style="flex:1;">
+                            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                                <span class="record-title">${t.memberName || (isIncome ? 'Sunday Congregation' : 'Church Operational Vendor')}</span>
+                                <span class="record-tag" style="background: ${bg}; color: ${color}; font-weight: 700; font-size: 12px; padding: 4px 10px;">
+                                    ${symbol}₹${t.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                                </span>
+                            </div>
+                            <span class="record-subtitle" style="font-weight:600; color:var(--text-main);"><i class="ri-wallet-3-line"></i> ${t.fund}</span>
+                            <span class="record-subtitle" style="display:block; margin-top:2px;">Memo: ${t.notes || 'No description'} • Date: ${t.date}</span>
+                            <div style="margin-top:10px; display:flex; gap:8px;">
+                                <button class="subpage-btn" style="padding:3px 8px; font-size:11px;" onclick="deleteTransactionRecord('${t.id}')">
+                                    <i class="ri-delete-bin-line"></i> Delete
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -801,86 +864,447 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     window.deleteTransactionRecord = async function (id) {
-        if (confirm('Delete this ledger record? (Balances will be adjusted automatically)')) {
+        if (!state.token) {
+            showToast('Auth Required', 'Please log in to manage ledger transactions.', 'warning');
+            return;
+        }
+        if (confirm('Delete this ledger record? (Balances will adjust automatically)')) {
             try {
                 await apiRequest(`/accounts/${id}`, { method: 'DELETE' });
-                showToast('Purged', 'Ledger transaction purged successfully.');
-                
+                showToast('Purged', 'Ledger record purged successfully.');
                 const searchVal = document.getElementById('searchInput') ? document.getElementById('searchInput').value.trim() : '';
                 fetchAccountsTab(searchVal);
+                fetchDashboardData();
             } catch (e) { }
         }
     };
 
-    // Renders custom lists for birthdays / anniversaries tabs
+    // Financial Modal Handler: Open for Income or Expense
+    window.openFinancialModal = function(type = 'INCOME') {
+        // Enforce login requirement
+        if (!state.token) {
+            showToast('Authentication Required', 'Please log in to record Sunday offerings or church expenses.', 'warning');
+            return;
+        }
+
+        const modal = document.getElementById('recordDonationModal');
+        if (!modal) return;
+
+        setFinancialTransactionType(type);
+
+        const dateInput = document.getElementById('donationDate');
+        if (dateInput) {
+            dateInput.value = new Date().toISOString().split('T')[0];
+        }
+
+        modal.style.display = 'flex';
+    };
+
+    window.setFinancialTransactionType = function(type) {
+        const transTypeInput = document.getElementById('transType');
+        const btnIncome = document.getElementById('typeSwitchIncome');
+        const btnExpense = document.getElementById('typeSwitchExpense');
+        const modalTitle = document.getElementById('transModalTitle');
+        const modalSubtitle = document.getElementById('transModalSubtitle');
+        const giverLabel = document.getElementById('giverLabel');
+        const fundLabel = document.getElementById('fundLabel');
+        const memberSelect = document.getElementById('donationMember');
+        const customPayee = document.getElementById('customPayeeInput');
+        const fundSelect = document.getElementById('donationFund');
+        const chipsContainer = document.getElementById('categoryChipsContainer');
+        const submitBtn = document.getElementById('btnSubmitTransaction');
+
+        if (!transTypeInput) return;
+        transTypeInput.value = type;
+
+        if (type === 'INCOME') {
+            if (btnIncome) btnIncome.className = 'type-switch-btn active-income';
+            if (btnExpense) btnExpense.className = 'type-switch-btn';
+            if (modalTitle) modalTitle.textContent = 'Record Sunday & Special Offering';
+            if (modalSubtitle) modalSubtitle.textContent = 'Log Sunday worship collections, tithes, thanksgiving, or mission gifts';
+            if (giverLabel) giverLabel.textContent = 'Contributor / Giver Name';
+            if (fundLabel) fundLabel.textContent = 'Offering Category / Fund';
+            if (memberSelect) memberSelect.style.display = 'block';
+            if (customPayee) customPayee.style.display = 'none';
+            if (submitBtn) {
+                submitBtn.innerHTML = '<i class="ri-check-line"></i> Save Offering';
+                submitBtn.style.background = 'linear-gradient(135deg, #0d9488, #14b8a6)';
+            }
+
+            if (fundSelect) {
+                fundSelect.innerHTML = OFFERING_CATEGORIES.map(c => `<option value="${c}">${c}</option>`).join('');
+            }
+            if (chipsContainer) {
+                chipsContainer.innerHTML = OFFERING_CATEGORIES.map((c, i) =>
+                    `<button type="button" class="chip-btn ${i === 0 ? 'active' : ''}" onclick="selectCategoryChip('${c}')">${c}</button>`
+                ).join('');
+            }
+        } else {
+            if (btnIncome) btnIncome.className = 'type-switch-btn';
+            if (btnExpense) btnExpense.className = 'type-switch-btn active-expense';
+            if (modalTitle) modalTitle.textContent = 'Record Church Operating Expense';
+            if (modalSubtitle) modalSubtitle.textContent = 'Log utility bills, sanctuary repairs, guest honorariums, or charity aid';
+            if (giverLabel) giverLabel.textContent = 'Vendor / Payee / Recipient';
+            if (fundLabel) fundLabel.textContent = 'Expense Category';
+            if (memberSelect) memberSelect.style.display = 'none';
+            if (customPayee) customPayee.style.display = 'block';
+            if (submitBtn) {
+                submitBtn.innerHTML = '<i class="ri-check-line"></i> Save Expense';
+                submitBtn.style.background = 'linear-gradient(135deg, #f43f5e, #ec4899)';
+            }
+
+            if (fundSelect) {
+                fundSelect.innerHTML = EXPENSE_CATEGORIES.map(c => `<option value="${c}">${c}</option>`).join('');
+            }
+            if (chipsContainer) {
+                chipsContainer.innerHTML = EXPENSE_CATEGORIES.map((c, i) =>
+                    `<button type="button" class="chip-btn ${i === 0 ? 'active' : ''}" onclick="selectCategoryChip('${c}')">${c}</button>`
+                ).join('');
+            }
+        }
+    };
+
+    window.selectCategoryChip = function(category) {
+        const fundSelect = document.getElementById('donationFund');
+        if (fundSelect) fundSelect.value = category;
+
+        const chips = document.querySelectorAll('#categoryChipsContainer .chip-btn');
+        chips.forEach(chip => {
+            if (chip.textContent === category) chip.classList.add('active');
+            else chip.classList.remove('active');
+        });
+    };
+
+    function getLastSundayDate() {
+        const d = new Date();
+        const day = d.getDay(); // 0 is Sunday
+        const diff = day === 0 ? 0 : day;
+        d.setDate(d.getDate() - diff);
+        return d.toISOString().split('T')[0];
+    }
+
+    // Set up ledger filter tab event listeners
+    const filterLedgerAll = document.getElementById('filterLedgerAll');
+    const filterLedgerIncome = document.getElementById('filterLedgerIncome');
+    const filterLedgerExpense = document.getElementById('filterLedgerExpense');
+
+    function setLedgerFilter(filter) {
+        currentFinancialFilter = filter;
+        [filterLedgerAll, filterLedgerIncome, filterLedgerExpense].forEach(btn => {
+            if (btn) btn.classList.remove('active');
+        });
+        if (filter === 'all' && filterLedgerAll) filterLedgerAll.classList.add('active');
+        if (filter === 'INCOME' && filterLedgerIncome) filterLedgerIncome.classList.add('active');
+        if (filter === 'EXPENSE' && filterLedgerExpense) filterLedgerExpense.classList.add('active');
+
+        const searchVal = document.getElementById('searchInput') ? document.getElementById('searchInput').value.trim() : '';
+        fetchAccountsTab(searchVal);
+    }
+
+    if (filterLedgerAll) filterLedgerAll.addEventListener('click', () => setLedgerFilter('all'));
+    if (filterLedgerIncome) filterLedgerIncome.addEventListener('click', () => setLedgerFilter('INCOME'));
+    if (filterLedgerExpense) filterLedgerExpense.addEventListener('click', () => setLedgerFilter('EXPENSE'));
+
+    // Date helper buttons in Transaction Modal
+    const btnDateToday = document.getElementById('btnDateToday');
+    const btnDateLastSunday = document.getElementById('btnDateLastSunday');
+    if (btnDateToday) {
+        btnDateToday.addEventListener('click', () => {
+            const dateInput = document.getElementById('donationDate');
+            if (dateInput) dateInput.value = new Date().toISOString().split('T')[0];
+        });
+    }
+    if (btnDateLastSunday) {
+        btnDateLastSunday.addEventListener('click', () => {
+            const dateInput = document.getElementById('donationDate');
+            if (dateInput) dateInput.value = getLastSundayDate();
+        });
+    }
+
+    // Amount pill quick selector
+    document.querySelectorAll('.amount-pill').forEach(pill => {
+        pill.addEventListener('click', () => {
+            const amt = pill.getAttribute('data-amt');
+            const amtInput = document.getElementById('donationAmount');
+            if (amtInput && amt) amtInput.value = amt;
+        });
+    });
+
+    // Transaction type switcher in modal
+    const typeSwitchIncome = document.getElementById('typeSwitchIncome');
+    const typeSwitchExpense = document.getElementById('typeSwitchExpense');
+    if (typeSwitchIncome) typeSwitchIncome.addEventListener('click', () => setFinancialTransactionType('INCOME'));
+    if (typeSwitchExpense) typeSwitchExpense.addEventListener('click', () => setFinancialTransactionType('EXPENSE'));
+
+
+    // ==========================================================================
+    // WHATSAPP WISHES & CELEBRATION REMINDERS ENGINE
+    // ==========================================================================
+
+    const BIBLE_VERSES_BDAY = [
+        '"The LORD bless you and keep you; the LORD make his face shine on you and be gracious to you; the LORD turn his face toward you and give you peace." — Numbers 6:24-26',
+        '"For I know the plans I have for you," declares the LORD, "plans to prosper you and not to harm you, plans to give you hope and a future." — Jeremiah 29:11',
+        '"May he give you the desire of your heart and make all your plans succeed." — Psalm 20:4',
+        '"The LORD your God is with you, the Mighty Warrior who saves. He will take great delight in you; in his love he will rejoice over you with singing." — Zephaniah 3:17'
+    ];
+
+    const BIBLE_VERSES_ANNIVERSARY = [
+        '"Above all, love each other deeply, because love covers over a multitude of sins." — 1 Peter 4:8',
+        '"And over all these virtues put on love, which binds them all together in perfect unity." — Colossians 3:14',
+        '"Two are better than one, because they have a good return for their labor... A cord of three strands is not quickly broken." — Ecclesiastes 4:9,12',
+        '"Therefore what God has joined together, let no one separate." — Mark 10:9'
+    ];
+
+    function cleanPhoneNumber(phone) {
+        if (!phone) return '';
+        let cleaned = phone.replace(/[^0-9]/g, '');
+        if (cleaned.length === 10) {
+            cleaned = '91' + cleaned; // Default country code if 10 digits
+        }
+        return cleaned;
+    }
+
+    function calculateAnniversaryYears(marriageDateStr) {
+        if (!marriageDateStr) return '';
+        try {
+            const mDate = new Date(marriageDateStr);
+            const today = new Date();
+            let years = today.getFullYear() - mDate.getFullYear();
+            if (years <= 0) return '1st';
+            const suffix = (years % 10 === 1 && years % 100 !== 11) ? 'st' :
+                           (years % 10 === 2 && years % 100 !== 12) ? 'nd' :
+                           (years % 10 === 3 && years % 100 !== 13) ? 'rd' : 'th';
+            return `${years}${suffix}`;
+        } catch (e) {
+            return '';
+        }
+    }
+
+    window.openWhatsAppWishModal = function(type, memberId) {
+        const member = (state.members || []).find(m => String(m.id) === String(memberId));
+        if (!member) {
+            showToast('Member Notice', 'Member record not found in cache.', 'warning');
+            return;
+        }
+
+        const modal = document.getElementById('whatsappWishModal');
+        const titleEl = document.getElementById('waModalTitle');
+        const subtitleEl = document.getElementById('waModalSubtitle');
+        const recipientNameEl = document.getElementById('waRecipientName');
+        const recipientPhoneEl = document.getElementById('waRecipientPhone');
+        const celebrationTagEl = document.getElementById('waCelebrationTag');
+        const messageTextEl = document.getElementById('waMessageText');
+        const sendBtn = document.getElementById('waDirectSendBtn');
+        const copyBtn = document.getElementById('waCopyBtn');
+
+        const cleanPhone = cleanPhoneNumber(member.mobileNumber);
+        recipientNameEl.textContent = `${member.firstName} ${member.lastName}`;
+        recipientPhoneEl.textContent = member.mobileNumber ? `📱 Mobile: ${member.mobileNumber}` : '⚠️ No mobile number registered';
+
+        let message = '';
+        if (type === 'birthday') {
+            titleEl.textContent = 'Send Birthday Blessing via WhatsApp';
+            subtitleEl.textContent = `Dispatch personalized scripture birthday wish to ${member.firstName}`;
+            celebrationTagEl.textContent = 'Birthday Blessing 🎂';
+            celebrationTagEl.style.background = 'rgba(37, 211, 102, 0.12)';
+            celebrationTagEl.style.color = '#128C7E';
+
+            const verse = BIBLE_VERSES_BDAY[Math.floor(Math.random() * BIBLE_VERSES_BDAY.length)];
+            message = `🎂 Grace & Peace! Dearest ${member.firstName} ${member.lastName},\n\nWishing you a very Blessed and Happy Birthday from your church family at GraceConnect! 🕊️✨\n\n📖 Scripture Blessing for your new year:\n${verse}\n\nMay the LORD surround you with His unfailing love, good health, and joyful favor throughout this coming year!\n\nWith love and prayers,\nGraceConnect Church Family`;
+        } else {
+            const milestone = calculateAnniversaryYears(member.marriageDate);
+            titleEl.textContent = 'Send Anniversary Blessing via WhatsApp';
+            subtitleEl.textContent = `Dispatch anniversary greeting and scripture to ${member.firstName} & spouse`;
+            celebrationTagEl.textContent = `${milestone || 'Happy'} Anniversary 💍`;
+            celebrationTagEl.style.background = 'rgba(244, 63, 94, 0.12)';
+            celebrationTagEl.style.color = '#f43f5e';
+
+            const verse = BIBLE_VERSES_ANNIVERSARY[Math.floor(Math.random() * BIBLE_VERSES_ANNIVERSARY.length)];
+            message = `💍 Happy ${milestone ? milestone + ' ' : ''}Wedding Anniversary, ${member.firstName} & family! 🥂🕊️\n\nWarmest Christian congratulations on your anniversary from your church family at GraceConnect!\n\n📖 Scripture Blessing for your holy matrimony:\n${verse}\n\nMay God continue to anchor your home in Christ's peace, mutual devotion, and abundant grace for many more blessed years together!\n\nWith love and prayers,\nGraceConnect Church Family`;
+        }
+
+        messageTextEl.value = message;
+
+        function updateSendLink() {
+            const currentMsg = encodeURIComponent(messageTextEl.value);
+            if (cleanPhone) {
+                sendBtn.href = `https://wa.me/${cleanPhone}?text=${currentMsg}`;
+            } else {
+                sendBtn.href = `https://wa.me/?text=${currentMsg}`;
+            }
+        }
+        updateSendLink();
+        messageTextEl.oninput = updateSendLink;
+
+        copyBtn.onclick = () => {
+            navigator.clipboard.writeText(messageTextEl.value).then(() => {
+                showToast('Copied!', 'Blessing message copied to clipboard.');
+            }).catch(() => {
+                showToast('Copied', 'Ready to paste.');
+            });
+        };
+
+        if (modal) modal.style.display = 'flex';
+    };
+
+    let activeBdayFilter = 'all';
+    let activeAnnFilter = 'all';
+
+    // Renders custom lists for birthdays / anniversaries tabs with live WhatsApp triggers
     async function fetchCelebrationRemindersTab(type, search = '') {
         const bdayContainer = document.getElementById('birthdaysListContainer');
         const annContainer = document.getElementById('anniversariesListContainer');
 
         try {
-            const json = await apiRequest('/members?size=200');
+            const json = await apiRequest('/members?size=300');
             let members = json.data.content;
+            state.members = members;
+
+            const today = new Date();
+            const currentMonth = today.getMonth() + 1;
+            const currentDay = today.getDate();
 
             if (search.trim() !== '') {
                 const term = search.toLowerCase().trim();
                 members = members.filter(m => 
-                    (m.firstName + ' ' + m.lastName).toLowerCase().includes(term)
+                    (m.firstName + ' ' + m.lastName).toLowerCase().includes(term) ||
+                    (m.mobileNumber && m.mobileNumber.includes(term))
                 );
             }
 
             if (type === 'birthdays' && bdayContainer) {
-                if (members.length === 0) {
+                let filtered = members.filter(m => m.dob);
+
+                if (activeBdayFilter === 'today') {
+                    filtered = filtered.filter(m => {
+                        const parts = m.dob.split('-');
+                        return parseInt(parts[1], 10) === currentMonth && parseInt(parts[2], 10) === currentDay;
+                    });
+                } else if (activeBdayFilter === 'month') {
+                    filtered = filtered.filter(m => {
+                        const parts = m.dob.split('-');
+                        return parseInt(parts[1], 10) === currentMonth;
+                    });
+                }
+
+                if (filtered.length === 0) {
                     bdayContainer.innerHTML = `
                         <div style="padding: 40px 24px; text-align: center; color: var(--text-light); width: 100%;">
-                            <i class="ri-search-eye-line" style="font-size: 38px; color: var(--primary-purple); display: block; margin-bottom: 12px; opacity: 0.7;"></i>
-                            <p style="font-size: 14px; font-weight: 500;">No birthdays matched your search query.</p>
+                            <i class="ri-cake-2-line" style="font-size: 38px; color: var(--primary-purple); display: block; margin-bottom: 12px; opacity: 0.7;"></i>
+                            <p style="font-size: 14px; font-weight: 500;">No birthdays found matching this filter.</p>
                         </div>
                     `;
                     return;
                 }
-                bdayContainer.innerHTML = members.map(m => `
-                    <div class="records-card">
-                        <div class="record-avatar">
-                            <img src="${m.profilePhoto}" alt="${m.firstName}" onerror="this.src='https://placehold.co/100/8b5cf6/ffffff?text=${m.firstName[0]}'">
+
+                bdayContainer.innerHTML = filtered.map(m => {
+                    const dobParts = m.dob.split('-');
+                    const isToday = parseInt(dobParts[1], 10) === currentMonth && parseInt(dobParts[2], 10) === currentDay;
+                    const badgeText = isToday ? '🎉 Birthday Today!' : `DOB: ${m.dob}`;
+                    const badgeBg = isToday ? 'rgba(37, 211, 102, 0.15)' : 'rgba(139, 92, 246, 0.08)';
+                    const badgeColor = isToday ? '#128C7E' : 'var(--primary-purple)';
+
+                    return `
+                        <div class="records-card">
+                            <div class="record-avatar">
+                                <img src="${m.profilePhoto}" alt="${m.firstName}" onerror="this.src='https://placehold.co/100/8b5cf6/ffffff?text=${m.firstName[0]}'">
+                            </div>
+                            <div class="record-info" style="flex:1;">
+                                <div style="display:flex; justify-content:space-between; align-items:center;">
+                                    <span class="record-title">${m.firstName} ${m.lastName}</span>
+                                    <span class="record-tag" style="background: ${badgeBg}; color: ${badgeColor}; font-weight:700;">
+                                        ${badgeText}
+                                    </span>
+                                </div>
+                                <span class="record-subtitle"><i class="ri-phone-line"></i> ${m.mobileNumber || 'No phone'}</span>
+                                <div style="margin-top:12px; display:flex; gap:8px; align-items:center;">
+                                    <button class="btn-whatsapp btn-whatsapp-sm" onclick="openWhatsAppWishModal('birthday', '${m.id}')">
+                                        <i class="ri-whatsapp-line"></i> WhatsApp Wish
+                                    </button>
+                                </div>
+                            </div>
                         </div>
-                        <div class="record-info">
-                            <span class="record-title">${m.firstName} ${m.lastName}</span>
-                            <span class="record-subtitle"><i class="ri-cake-2-line"></i> DOB: ${m.dob}</span>
-                            <span class="record-tag">Send Birthday Blessing</span>
+                    `;
+                }).join('');
+            }
+
+            if (type === 'anniversaries' && annContainer) {
+                let married = members.filter(m => m.marriageStatus === 'Married' && m.marriageDate);
+
+                if (activeAnnFilter === 'today') {
+                    married = married.filter(m => {
+                        const parts = m.marriageDate.split('-');
+                        return parseInt(parts[1], 10) === currentMonth && parseInt(parts[2], 10) === currentDay;
+                    });
+                } else if (activeAnnFilter === 'month') {
+                    married = married.filter(m => {
+                        const parts = m.marriageDate.split('-');
+                        return parseInt(parts[1], 10) === currentMonth;
+                    });
+                }
+
+                if (married.length === 0) {
+                    annContainer.innerHTML = `
+                        <div style="padding: 40px 24px; text-align: center; color: var(--text-light); width: 100%;">
+                            <i class="ri-hearts-line" style="font-size: 38px; color: var(--primary-rose); display: block; margin-bottom: 12px; opacity: 0.7;"></i>
+                            <p style="font-size: 14px; font-weight: 500;">No marriage anniversaries found matching this filter.</p>
                         </div>
-                    </div>
-                `).join('');
+                    `;
+                    return;
+                }
+
+                annContainer.innerHTML = married.map(m => {
+                    const mParts = m.marriageDate.split('-');
+                    const isToday = parseInt(mParts[1], 10) === currentMonth && parseInt(mParts[2], 10) === currentDay;
+                    const milestone = calculateAnniversaryYears(m.marriageDate);
+                    const badgeText = isToday ? `💍 Anniversary Today! (${milestone})` : `${milestone || ''} Anniversary • ${m.marriageDate}`;
+
+                    return `
+                        <div class="records-card">
+                            <div class="record-avatar" style="background: rgba(244, 63, 94, 0.08); display: flex; align-items: center; justify-content: center; font-size: 22px; color: var(--primary-rose)">
+                                <i class="ri-hearts-line"></i>
+                            </div>
+                            <div class="record-info" style="flex:1;">
+                                <div style="display:flex; justify-content:space-between; align-items:center;">
+                                    <span class="record-title">${m.firstName} ${m.lastName} & Family</span>
+                                    <span class="record-tag" style="background: rgba(244, 63, 94, 0.1); color: var(--primary-rose); font-weight:700;">
+                                        ${badgeText}
+                                    </span>
+                                </div>
+                                <span class="record-subtitle"><i class="ri-calendar-line"></i> Married on: ${m.marriageDate} • 📱 ${m.mobileNumber || 'No phone'}</span>
+                                <div style="margin-top:12px; display:flex; gap:8px;">
+                                    <button class="btn-whatsapp btn-whatsapp-sm" onclick="openWhatsAppWishModal('anniversary', '${m.id}')">
+                                        <i class="ri-whatsapp-line"></i> WhatsApp Wish
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
             }
         } catch (e) { }
-
-        if (type === 'anniversaries' && annContainer) {
-            annContainer.innerHTML = `
-                <div class="records-card">
-                    <div class="record-avatar" style="background: rgba(244, 63, 94, 0.08); display: flex; align-items: center; justify-content: center; font-size: 22px; color: var(--primary-rose)">
-                        <i class="ri-hearts-line"></i>
-                    </div>
-                    <div class="record-info">
-                        <span class="record-title">James & Sarah Miller</span>
-                        <span class="record-subtitle"><i class="ri-calendar-line"></i> Married: June 15, 2008</span>
-                        <span class="record-tag" style="background: rgba(244, 63, 94, 0.08); color: var(--primary-rose)">18th Anniversary</span>
-                    </div>
-                </div>
-                <div class="records-card">
-                    <div class="record-avatar" style="background: rgba(244, 63, 94, 0.08); display: flex; align-items: center; justify-content: center; font-size: 22px; color: var(--primary-rose)">
-                        <i class="ri-hearts-line"></i>
-                    </div>
-                    <div class="record-info">
-                        <span class="record-title">Mateo & Elena Chavez</span>
-                        <span class="record-subtitle"><i class="ri-calendar-line"></i> Married: February 14, 2012</span>
-                        <span class="record-tag" style="background: rgba(244, 63, 94, 0.08); color: var(--primary-rose)">14th Anniversary</span>
-                    </div>
-                </div>
-            `;
-        }
     }
 
+    // Birthday and Anniversary filter button triggers
+    document.querySelectorAll('#bdayFilterGroup [data-bday-filter]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('#bdayFilterGroup [data-bday-filter]').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            activeBdayFilter = btn.getAttribute('data-bday-filter');
+            fetchCelebrationRemindersTab('birthdays');
+        });
+    });
 
-    // Celebrations Widget tabs
+    document.querySelectorAll('#annFilterGroup [data-ann-filter]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('#annFilterGroup [data-ann-filter]').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            activeAnnFilter = btn.getAttribute('data-ann-filter');
+            fetchCelebrationRemindersTab('anniversaries');
+        });
+    });
+
+    // Celebrations Sidebar Widget
     const celebrationTabBirthdays = document.getElementById('celebrationTabBirthdays');
     const celebrationTabAnniversaries = document.getElementById('celebrationTabAnniversaries');
     const celebrationList = document.getElementById('celebrationList');
@@ -890,44 +1314,75 @@ document.addEventListener('DOMContentLoaded', () => {
         celebrationList.innerHTML = '';
 
         try {
+            const json = await apiRequest('/members?size=200');
+            const members = json.data.content;
+            state.members = members;
+
+            const today = new Date();
+            const curMonth = today.getMonth() + 1;
+            const curDay = today.getDate();
+
             if (mode === 'birthdays') {
-                celebrationTabBirthdays.classList.add('active');
-                celebrationTabAnniversaries.classList.remove('active');
+                if (celebrationTabBirthdays) celebrationTabBirthdays.classList.add('active');
+                if (celebrationTabAnniversaries) celebrationTabAnniversaries.classList.remove('active');
 
-                const json = await apiRequest('/members?size=200');
-                const bdays = json.data.content;
-                celebrationList.innerHTML = bdays.slice(0, 4).map(m => `
-                    <div class="reminder-item">
-                        <div class="reminder-avatar">
-                            <img src="${m.profilePhoto}" alt="${m.firstName}" onerror="this.src='https://placehold.co/100/8b5cf6/ffffff?text=${m.firstName[0]}'">
+                // Sort: birthdays today first, then this month, then others
+                const bdays = members.filter(m => m.dob).sort((a, b) => {
+                    const aP = a.dob.split('-');
+                    const bP = b.dob.split('-');
+                    const aIsToday = parseInt(aP[1], 10) === curMonth && parseInt(aP[2], 10) === curDay ? 0 : 1;
+                    const bIsToday = parseInt(bP[1], 10) === curMonth && parseInt(bP[2], 10) === curDay ? 0 : 1;
+                    return aIsToday - bIsToday;
+                });
+
+                celebrationList.innerHTML = bdays.slice(0, 5).map(m => {
+                    const dobParts = m.dob.split('-');
+                    const isToday = parseInt(dobParts[1], 10) === curMonth && parseInt(dobParts[2], 10) === curDay;
+
+                    return `
+                        <div class="reminder-item">
+                            <div class="reminder-avatar">
+                                <img src="${m.profilePhoto}" alt="${m.firstName}" onerror="this.src='https://placehold.co/100/8b5cf6/ffffff?text=${m.firstName[0]}'">
+                            </div>
+                            <div class="reminder-details" style="flex:1;">
+                                <span class="reminder-name">${m.firstName} ${m.lastName}</span>
+                                <span class="reminder-date">
+                                    <i class="ri-cake-2-line"></i> ${isToday ? '<strong style="color:#128C7E;">🎉 Today!</strong>' : m.dob}
+                                </span>
+                            </div>
+                            <button class="reminder-action-btn" title="Send WhatsApp Blessing" style="background:#25D366; color:white; border-color:#25D366;" onclick="openWhatsAppWishModal('birthday', '${m.id}')">
+                                <i class="ri-whatsapp-line"></i>
+                            </button>
                         </div>
-                        <div class="reminder-details">
-                            <span class="reminder-name">${m.firstName} ${m.lastName}</span>
-                            <span class="reminder-date"><i class="ri-cake-2-line"></i> DOB: ${m.dob}</span>
-                        </div>
-                        <button class="reminder-action-btn" onclick="alert('Greeting Blessings Sent to ${m.firstName}!')">
-                            <i class="ri-send-plane-fill"></i>
-                        </button>
-                    </div>
-                `).join('');
+                    `;
+                }).join('');
             } else {
-                celebrationTabBirthdays.classList.remove('active');
-                celebrationTabAnniversaries.classList.add('active');
+                if (celebrationTabBirthdays) celebrationTabBirthdays.classList.remove('active');
+                if (celebrationTabAnniversaries) celebrationTabAnniversaries.classList.add('active');
 
-                celebrationList.innerHTML = `
-                    <div class="reminder-item">
-                        <div class="reminder-avatar" style="background: rgba(244, 63, 94, 0.08); display: flex; align-items: center; justify-content: center; font-size: 16px; color: var(--primary-rose)">
-                            <i class="ri-hearts-line"></i>
+                const married = members.filter(m => m.marriageStatus === 'Married' && m.marriageDate);
+                celebrationList.innerHTML = married.slice(0, 5).map(m => {
+                    const mParts = m.marriageDate.split('-');
+                    const isToday = parseInt(mParts[1], 10) === curMonth && parseInt(mParts[2], 10) === curDay;
+                    const milestone = calculateAnniversaryYears(m.marriageDate);
+
+                    return `
+                        <div class="reminder-item">
+                            <div class="reminder-avatar" style="background: rgba(244, 63, 94, 0.08); display: flex; align-items: center; justify-content: center; font-size: 16px; color: var(--primary-rose)">
+                                <i class="ri-hearts-line"></i>
+                            </div>
+                            <div class="reminder-details" style="flex:1;">
+                                <span class="reminder-name">${m.firstName} & Spouse</span>
+                                <span class="reminder-date">
+                                    <i class="ri-calendar-line"></i> ${isToday ? '<strong style="color:var(--primary-rose);">💍 Today!</strong>' : (milestone ? milestone + ' Anniv.' : m.marriageDate)}
+                                </span>
+                            </div>
+                            <button class="reminder-action-btn" title="Send Anniversary WhatsApp Wish" style="background:#25D366; color:white; border-color:#25D366;" onclick="openWhatsAppWishModal('anniversary', '${m.id}')">
+                                <i class="ri-whatsapp-line"></i>
+                            </button>
                         </div>
-                        <div class="reminder-details">
-                            <span class="reminder-name">James & Sarah Miller</span>
-                            <span class="reminder-date"><i class="ri-calendar-line"></i> Married: June 15, 2008</span>
-                        </div>
-                        <button class="reminder-action-btn" onclick="alert('Anniversary blessing sent!')">
-                            <i class="ri-send-plane-fill"></i>
-                        </button>
-                    </div>
-                `;
+                    `;
+                }).join('');
             }
         } catch (e) { }
     }
@@ -1269,7 +1724,8 @@ document.addEventListener('DOMContentLoaded', () => {
         addFamily: document.getElementById('addFamilyModal'),
         addMember: document.getElementById('addMemberModal'),
         recordDonation: document.getElementById('recordDonationModal'),
-        addEvent: document.getElementById('addEventModal')
+        addEvent: document.getElementById('addEventModal'),
+        whatsappWish: document.getElementById('whatsappWishModal')
     };
 
     function openModal(modalId) {
@@ -1290,11 +1746,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // Modal click triggers
     const modalTriggers = [
         { btn: 'quickActionAddFamily', modal: 'addFamily' },
-        { btn: 'quickActionRecordDonation', modal: 'recordDonation' },
         { btn: 'quickActionScheduleEvent', modal: 'addEvent' },
         { btn: 'addFamilyNavbarBtn', modal: 'addFamily' },
-        { btn: 'scheduleEventBtn', modal: 'addEvent' },
-        { btn: 'recordDonationNavbarBtn', modal: 'recordDonation' }
+        { btn: 'scheduleEventBtn', modal: 'addEvent' }
     ];
 
     modalTriggers.forEach(trigger => {
@@ -1303,6 +1757,17 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.addEventListener('click', () => openModal(trigger.modal));
         }
     });
+
+    // Dedicated Financial Ledger Triggers (Offerings vs Church Expenses)
+    const btnQuickOffering = document.getElementById('quickActionSundayOffering');
+    const btnQuickExpense = document.getElementById('quickActionChurchExpense');
+    const btnNavOffering = document.getElementById('recordOfferingNavbarBtn');
+    const btnNavExpense = document.getElementById('recordExpenseNavbarBtn');
+
+    if (btnQuickOffering) btnQuickOffering.addEventListener('click', () => openFinancialModal('INCOME'));
+    if (btnQuickExpense) btnQuickExpense.addEventListener('click', () => openFinancialModal('EXPENSE'));
+    if (btnNavOffering) btnNavOffering.addEventListener('click', () => openFinancialModal('INCOME'));
+    if (btnNavExpense) btnNavExpense.addEventListener('click', () => openFinancialModal('EXPENSE'));
 
     document.querySelectorAll('[data-close]').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -1438,32 +1903,58 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // FORM 3: Record Donation Submit
+    // FORM 3: Record Offering or Church Expense Submit
     const recordDonationForm = document.getElementById('recordDonationForm');
     if (recordDonationForm) {
         recordDonationForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const memberName = document.getElementById('donationMember').value;
+
+            // Strict Authentication Guard
+            if (!state.token) {
+                showToast('Authentication Required', 'Please log in to record church offerings and expenses.', 'warning');
+                return;
+            }
+
+            const transType = (document.getElementById('transType').value || 'INCOME').toUpperCase();
+            let memberName = '';
+            if (transType === 'INCOME') {
+                const sel = document.getElementById('donationMember');
+                memberName = sel ? sel.value : 'General Sunday Congregation';
+            } else {
+                const payeeInput = document.getElementById('customPayeeInput');
+                memberName = payeeInput && payeeInput.value.trim() !== '' ? payeeInput.value.trim() : 'Church Operations Vendor';
+            }
+
             const amount = parseFloat(document.getElementById('donationAmount').value);
+            if (isNaN(amount) || amount <= 0) {
+                showToast('Invalid Amount', 'Please specify a valid financial amount greater than 0.', 'warning');
+                return;
+            }
+
             const fund = document.getElementById('donationFund').value;
-            const notes = document.getElementById('donationNotes').value || 'Contribution Offering';
+            const dateInput = document.getElementById('donationDate');
+            const date = (dateInput && dateInput.value) ? dateInput.value : new Date().toISOString().split('T')[0];
+            const notes = document.getElementById('donationNotes').value || (transType === 'INCOME' ? 'Sunday Offering / Tithe' : 'Church Operational Expense');
 
             try {
                 await apiRequest('/accounts', {
                     method: 'POST',
                     body: JSON.stringify({
-                        type: 'INCOME',
+                        type: transType,
                         memberName,
                         amount,
                         fund,
                         notes,
-                        date: new Date().toISOString().split('T')[0]
+                        date
                     })
                 });
 
                 closeModal('recordDonation');
                 recordDonationForm.reset();
-                showToast('Offering Recorded', `Successfully logged contribution of $${amount.toFixed(2)}.`);
+                showToast(
+                    transType === 'INCOME' ? 'Offering Logged' : 'Expense Recorded',
+                    `Successfully recorded ₹${amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })} for ${fund}.`
+                );
 
                 if (currentActivePage === 'accounts') fetchAccountsTab();
                 else if (currentActivePage === 'dashboard') fetchDashboardData();

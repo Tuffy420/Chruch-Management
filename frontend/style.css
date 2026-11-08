@@ -1938,4 +1938,237 @@ body {
     to { opacity: 1; transform: translateY(0); }
 }
 
+/* ==========================================================================
+   WHATSAPP WISHES & BLESSINGS STYLING
+   ========================================================================== */
+.btn-whatsapp {
+    background: linear-gradient(135deg, #25D366, #128C7E);
+    color: #ffffff !important;
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 7px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(37, 211, 102, 0.3);
+    transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+    text-decoration: none;
+}
+.btn-whatsapp:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(37, 211, 102, 0.45);
+    background: linear-gradient(135deg, #2ae06d, #0f7a6e);
+}
+.btn-whatsapp-sm {
+    padding: 4px 10px;
+    font-size: 11px;
+    border-radius: 6px;
+}
+.btn-whatsapp i {
+    font-size: 15px;
+}
+
+/* Copy Greeting Button */
+.btn-copy-greeting {
+    background: rgba(139, 92, 246, 0.08);
+    color: var(--primary-purple);
+    border: 1px solid rgba(139, 92, 246, 0.2);
+    border-radius: var(--radius-sm);
+    padding: 6px 12px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: all var(--transition-fast);
+}
+.btn-copy-greeting:hover {
+    background: var(--primary-purple);
+    color: #ffffff;
+}
+
+/* ==========================================================================
+   OFFERINGS & EXPENSES FINANCIAL ENTRY STYLING
+   ========================================================================== */
+.type-switcher {
+    display: flex;
+    background: rgba(241, 245, 249, 0.9);
+    border-radius: var(--radius-sm);
+    padding: 4px;
+    gap: 6px;
+    margin-bottom: 18px;
+    border: 1px solid var(--border-color);
+}
+.type-switch-btn {
+    flex: 1;
+    border: none;
+    background: transparent;
+    padding: 10px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-muted);
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all var(--transition-fast);
+}
+.type-switch-btn.active-income {
+    background: linear-gradient(135deg, #0d9488, #14b8a6);
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(13, 148, 136, 0.3);
+}
+.type-switch-btn.active-expense {
+    background: linear-gradient(135deg, #f43f5e, #ec4899);
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(244, 63, 94, 0.3);
+}
+
+/* Quick Category Presets Chips */
+.quick-chips-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 6px;
+    margin-bottom: 12px;
+}
+.chip-btn {
+    border: 1px solid var(--border-color);
+    background: white;
+    border-radius: 20px;
+    padding: 4px 10px;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+.chip-btn:hover {
+    border-color: var(--primary-purple);
+    color: var(--primary-purple);
+    background: rgba(139, 92, 246, 0.05);
+}
+.chip-btn.active {
+    background: var(--primary-purple);
+    color: white;
+    border-color: var(--primary-purple);
+}
+
+/* Quick Amount Pills */
+.amount-pill {
+    background: rgba(243, 244, 246, 0.8);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 3px 8px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+.amount-pill:hover {
+    background: var(--primary-blue);
+    color: white;
+    border-color: var(--primary-blue);
+}
+
+/* Quick Date Helpers */
+.date-helper-btn {
+    background: rgba(59, 130, 246, 0.08);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    color: var(--primary-blue);
+    border-radius: 6px;
+    padding: 3px 8px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-left: 6px;
+    transition: all var(--transition-fast);
+}
+.date-helper-btn:hover {
+    background: var(--primary-blue);
+    color: white;
+}
+
+/* Ledger Summary Cards inside Accounts View */
+.ledger-summary-banner {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+}
+.ledger-summary-card {
+    background: white;
+    border: 1px solid var(--border-glass);
+    border-radius: var(--radius-md);
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    box-shadow: var(--shadow-sm);
+}
+.ledger-icon-box {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+}
+.ledger-icon-box.green { background: rgba(13, 148, 136, 0.1); color: var(--primary-teal); }
+.ledger-icon-box.rose { background: rgba(244, 63, 94, 0.1); color: var(--primary-rose); }
+.ledger-icon-box.purple { background: rgba(139, 92, 246, 0.1); color: var(--primary-purple); }
+
+.ledger-summary-info {
+    display: flex;
+    flex-direction: column;
+}
+.ledger-summary-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-light);
+}
+.ledger-summary-value {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-main);
+    font-family: 'Outfit', sans-serif;
+}
+
+/* Celebration Tab Filter Buttons */
+.celebration-filter-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 18px;
+}
+.celebration-filter-btn {
+    background: white;
+    border: 1px solid var(--border-color);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-light);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+.celebration-filter-btn:hover {
+    border-color: var(--primary-purple);
+    color: var(--primary-purple);
+}
+.celebration-filter-btn.active {
+    background: var(--primary-purple);
+    color: white;
+    border-color: var(--primary-purple);
+    box-shadow: 0 2px 8px rgba(139, 92, 246, 0.25);
+}
+
+
 

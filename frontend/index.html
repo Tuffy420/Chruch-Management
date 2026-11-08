@@ -397,11 +397,58 @@
             <!-- DYNAMIC SCREEN: ACCOUNTS -->
             <div class="subpage-view" id="accountsView">
                 <div class="subpage-header">
-                    <h2>Financial Ledgers</h2>
+                    <div>
+                        <h2>Church Financial Ledgers</h2>
+                        <span style="font-size: 13px; color: var(--text-light);">Manage Sunday offerings, special collections, and operating expenses</span>
+                    </div>
                     <div class="subpage-controls">
-                        <button class="subpage-btn primary" id="recordDonationNavbarBtn"><i class="ri-coins-line"></i> Record Donation</button>
+                        <button class="subpage-btn" style="background: linear-gradient(135deg, #0d9488, #14b8a6); color:white; font-weight:600;" id="recordOfferingNavbarBtn">
+                            <i class="ri-hand-coin-line"></i> + Sunday Offering
+                        </button>
+                        <button class="subpage-btn" style="background: linear-gradient(135deg, #f43f5e, #ec4899); color:white; font-weight:600;" id="recordExpenseNavbarBtn">
+                            <i class="ri-shopping-cart-2-line"></i> - Church Expense
+                        </button>
                     </div>
                 </div>
+
+                <!-- Ledger Quick Summary Metrics -->
+                <div class="ledger-summary-banner">
+                    <div class="ledger-summary-card">
+                        <div class="ledger-icon-box green">
+                            <i class="ri-hand-coin-line"></i>
+                        </div>
+                        <div class="ledger-summary-info">
+                            <span class="ledger-summary-label">Total Offerings & Tithes</span>
+                            <span class="ledger-summary-value" id="ledgerTotalIncome">₹0.00</span>
+                        </div>
+                    </div>
+                    <div class="ledger-summary-card">
+                        <div class="ledger-icon-box rose">
+                            <i class="ri-shopping-bag-3-line"></i>
+                        </div>
+                        <div class="ledger-summary-info">
+                            <span class="ledger-summary-label">Total Church Expenses</span>
+                            <span class="ledger-summary-value" id="ledgerTotalExpense">₹0.00</span>
+                        </div>
+                    </div>
+                    <div class="ledger-summary-card">
+                        <div class="ledger-icon-box purple">
+                            <i class="ri-wallet-3-line"></i>
+                        </div>
+                        <div class="ledger-summary-info">
+                            <span class="ledger-summary-label">Net Treasury Balance</span>
+                            <span class="ledger-summary-value" id="ledgerNetBalance">₹0.00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Financial Type Filter Tabs -->
+                <div class="celebration-filter-tabs">
+                    <button class="celebration-filter-btn active" id="filterLedgerAll">All Transactions</button>
+                    <button class="celebration-filter-btn" id="filterLedgerIncome"><i class="ri-arrow-down-circle-line" style="color:var(--primary-teal)"></i> Offerings & Tithes</button>
+                    <button class="celebration-filter-btn" id="filterLedgerExpense"><i class="ri-arrow-up-circle-line" style="color:var(--primary-rose)"></i> Church Expenses</button>
+                </div>
+
                 <div class="records-grid" id="accountsListContainer">
                     <!-- Accounts Ledger List -->
                 </div>
@@ -410,8 +457,19 @@
             <!-- DYNAMIC SCREEN: BIRTHDAYS -->
             <div class="subpage-view" id="birthdaysView">
                 <div class="subpage-header">
-                    <h2>Birthdays Directory</h2>
+                    <div>
+                        <h2>Birthdays Directory</h2>
+                        <span style="font-size: 13px; color: var(--text-light);">Send personalized scripture birthday blessings directly via WhatsApp</span>
+                    </div>
                 </div>
+
+                <!-- Birthday Filter Tabs -->
+                <div class="celebration-filter-tabs" id="bdayFilterGroup">
+                    <button class="celebration-filter-btn active" data-bday-filter="all">All Members</button>
+                    <button class="celebration-filter-btn" data-bday-filter="today">🎉 Today's Birthdays</button>
+                    <button class="celebration-filter-btn" data-bday-filter="month">📅 This Month</button>
+                </div>
+
                 <div class="records-grid" id="birthdaysListContainer">
                     <!-- Birthdays List -->
                 </div>
@@ -420,8 +478,19 @@
             <!-- DYNAMIC SCREEN: MARRIAGE ANNIVERSARIES -->
             <div class="subpage-view" id="marriageView">
                 <div class="subpage-header">
-                    <h2>Marriage Anniversaries</h2>
+                    <div>
+                        <h2>Marriage Anniversaries</h2>
+                        <span style="font-size: 13px; color: var(--text-light);">Celebrate married couples with anniversary greetings and scripture via WhatsApp</span>
+                    </div>
                 </div>
+
+                <!-- Anniversary Filter Tabs -->
+                <div class="celebration-filter-tabs" id="annFilterGroup">
+                    <button class="celebration-filter-btn active" data-ann-filter="all">All Married Couples</button>
+                    <button class="celebration-filter-btn" data-ann-filter="today">💍 Today's Anniversaries</button>
+                    <button class="celebration-filter-btn" data-ann-filter="month">📅 This Month</button>
+                </div>
+
                 <div class="records-grid" id="anniversariesListContainer">
                     <!-- Anniversaries List -->
                 </div>
@@ -470,18 +539,22 @@
                     <h3><i class="ri-flashlight-line"></i> Quick Actions</h3>
                 </div>
                 <div class="quick-actions-widget">
-                    <div class="actions-list">
+                    <div class="actions-list" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+                        <button class="action-btn blue" id="quickActionSundayOffering">
+                            <i class="ri-hand-coin-line"></i>
+                            <span>+ Offering</span>
+                        </button>
+                        <button class="action-btn rose" id="quickActionChurchExpense">
+                            <i class="ri-shopping-cart-2-line"></i>
+                            <span>- Expense</span>
+                        </button>
                         <button class="action-btn purple" id="quickActionAddFamily">
                             <i class="ri-group-line"></i>
-                            <span>Add Family</span>
+                            <span>+ Family</span>
                         </button>
-                        <button class="action-btn blue" id="quickActionRecordDonation">
-                            <i class="ri-hand-coin-line"></i>
-                            <span>Donation</span>
-                        </button>
-                        <button class="action-btn rose" id="quickActionScheduleEvent">
+                        <button class="action-btn amber" id="quickActionScheduleEvent">
                             <i class="ri-calendar-line"></i>
-                            <span>Add Event</span>
+                            <span>+ Event</span>
                         </button>
                     </div>
                 </div>
@@ -690,46 +763,133 @@
 
 
 
-        <!-- Modal: Record Donation -->
+        <!-- Modal: Record Financial Transaction (Offerings & Church Expenses) -->
         <div class="modal-overlay" id="recordDonationModal">
-            <div class="modal-content">
+            <div class="modal-content" style="max-width: 520px;">
                 <button class="modal-close-btn" data-close="recordDonationModal"><i class="ri-close-line"></i></button>
                 <div class="modal-header">
-                    <h3>Record Financial Contribution</h3>
-                    <p>Register tithes, outreach support, or general building donations</p>
+                    <h3 id="transModalTitle">Church Financial Entry</h3>
+                    <p id="transModalSubtitle">Record Sunday offerings, tithes, or operational church expenses</p>
                 </div>
+
+                <!-- Transaction Type Toggle -->
+                <div class="type-switcher">
+                    <button type="button" class="type-switch-btn active-income" id="typeSwitchIncome">
+                        <i class="ri-hand-coin-line"></i> Record Offering (Income)
+                    </button>
+                    <button type="button" class="type-switch-btn" id="typeSwitchExpense">
+                        <i class="ri-shopping-cart-2-line"></i> Church Expense (Expense)
+                    </button>
+                </div>
+
                 <form id="recordDonationForm">
-                    <div class="form-group">
-                        <label for="donationMember">Contributor Name</label>
-                        <select class="form-control" id="donationMember" required>
-                            <!-- Populated with members -->
+                    <input type="hidden" id="transType" value="INCOME">
+
+                    <!-- Giver / Payee Group -->
+                    <div class="form-group" id="giverGroup">
+                        <label for="donationMember" id="giverLabel">Contributor / Giver Name</label>
+                        <select class="form-control" id="donationMember">
+                            <option value="General Sunday Congregation">General Sunday Congregation (Basket Collection)</option>
+                            <!-- Populated with registered members -->
                         </select>
+                        <input type="text" class="form-control" id="customPayeeInput" placeholder="e.g. City Power Corp, Sound Vendor" style="display:none; margin-top:6px;">
                     </div>
+
+                    <!-- Category / Fund with Quick Chips -->
+                    <div class="form-group">
+                        <label for="donationFund" id="fundLabel">Offering Category / Fund</label>
+                        <select class="form-control" id="donationFund" required>
+                            <!-- Populated dynamically based on Income/Expense -->
+                        </select>
+                        <div class="quick-chips-wrapper" id="categoryChipsContainer">
+                            <!-- Populated dynamically with one-tap chips -->
+                        </div>
+                    </div>
+
                     <div class="form-row">
+                        <!-- Date with Quick Shortcut Buttons -->
                         <div class="form-group">
-                            <label for="donationAmount">Amount (₹)</label>
+                            <label>
+                                Transaction Date
+                                <button type="button" class="date-helper-btn" id="btnDateToday">Today</button>
+                                <button type="button" class="date-helper-btn" id="btnDateLastSunday">📅 Last Sunday</button>
+                            </label>
+                            <input type="date" class="form-control" id="donationDate" required>
+                        </div>
+
+                        <!-- Amount with Quick Pills -->
+                        <div class="form-group">
+                            <label>Amount (₹)</label>
                             <input type="number" class="form-control" id="donationAmount" required min="1" step="0.01" placeholder="0.00">
                         </div>
-                        <div class="form-group">
-                            <label for="donationFund">Designated Account Fund</label>
-                            <select class="form-control" id="donationFund" required>
-                                <option value="Sunday Worship Offering">Sunday Worship Offering</option>
-                                <option value="General Fund">General Fund</option>
-                                <option value="Missions & Outreach">Missions & Outreach</option>
-                                <option value="Building Maintenance">Building Maintenance</option>
-                                <option value="Charity & Welfare">Charity & Welfare</option>
-                            </select>
-                        </div>
                     </div>
+
+                    <!-- Quick Amount Chips -->
+                    <div style="display:flex; gap:6px; margin-top:-8px; margin-bottom:12px; align-items:center;">
+                        <span style="font-size:11px; color:var(--text-light); font-weight:600;">Quick:</span>
+                        <span class="amount-pill" data-amt="500">₹500</span>
+                        <span class="amount-pill" data-amt="1000">₹1,000</span>
+                        <span class="amount-pill" data-amt="2500">₹2,500</span>
+                        <span class="amount-pill" data-amt="5000">₹5,000</span>
+                        <span class="amount-pill" data-amt="10000">₹10,000</span>
+                    </div>
+
+                    <!-- Notes / Memo -->
                     <div class="form-group">
-                        <label for="donationNotes">Contribution Note / Memo (Optional)</label>
-                        <input type="text" class="form-control" id="donationNotes" placeholder="e.g. Annual tithe, Youth camp sponsorship">
+                        <label for="donationNotes">Memo / Notes (Optional)</label>
+                        <input type="text" class="form-control" id="donationNotes" placeholder="e.g. Sunday 1st Service collection, Sound system cable replacement">
                     </div>
+
                     <div class="modal-footer">
                         <button type="button" class="subpage-btn" data-close="recordDonationModal">Cancel</button>
-                        <button type="submit" class="subpage-btn primary">Record Transaction</button>
+                        <button type="submit" class="subpage-btn primary" id="btnSubmitTransaction">
+                            <i class="ri-check-line"></i> Save Transaction
+                        </button>
                     </div>
                 </form>
+            </div>
+        </div>
+
+        <!-- Modal: WhatsApp Blessing Preview & Dispatcher -->
+        <div class="modal-overlay" id="whatsappWishModal">
+            <div class="modal-content" style="max-width: 500px;">
+                <button class="modal-close-btn" data-close="whatsappWishModal"><i class="ri-close-line"></i></button>
+                <div class="modal-header">
+                    <h3 style="display:flex; align-items:center; gap:8px;">
+                        <i class="ri-whatsapp-fill" style="color: #25D366; font-size:24px;"></i> 
+                        <span id="waModalTitle">Send WhatsApp Blessing</span>
+                    </h3>
+                    <p id="waModalSubtitle">Personalized scripture wish ready to dispatch to member</p>
+                </div>
+
+                <div style="background: rgba(243, 244, 246, 0.7); border-radius: 12px; padding: 12px 16px; margin-bottom: 16px; border: 1px solid var(--border-color);">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <span style="font-size: 13px; font-weight: 700; color: var(--text-main);" id="waRecipientName">-</span>
+                            <span style="font-size: 12px; color: var(--text-light); display:block;" id="waRecipientPhone">-</span>
+                        </div>
+                        <span class="record-tag" id="waCelebrationTag" style="background: rgba(37, 211, 102, 0.12); color: #128C7E; font-weight:700;">
+                            Birthday Wish
+                        </span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Scripture & Message (Editable)</label>
+                    <textarea class="form-control" id="waMessageText" rows="6" style="resize:vertical; font-size:12.5px; line-height:1.5;"></textarea>
+                </div>
+
+                <div class="modal-footer" style="justify-content:space-between; align-items:center;">
+                    <button type="button" class="btn-copy-greeting" id="waCopyBtn">
+                        <i class="ri-file-copy-line"></i> Copy Message
+                    </button>
+                    <div style="display:flex; gap:8px;">
+                        <button type="button" class="subpage-btn" data-close="whatsappWishModal">Close</button>
+                        <a id="waDirectSendBtn" href="#" target="_blank" class="btn-whatsapp">
+                            <i class="ri-whatsapp-line"></i> Send via WhatsApp
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
 

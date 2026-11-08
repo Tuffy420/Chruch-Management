@@ -7,3 +7,4 @@ target/
 graceconnect.db
 *.db
 .DS_Store
+
