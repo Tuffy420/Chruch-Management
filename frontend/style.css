@@ -2170,5 +2170,188 @@ body {
     box-shadow: 0 2px 8px rgba(139, 92, 246, 0.25);
 }
 
+/* ==========================================================================
+   WHATSAPP AUTOMATION CENTER & MODALS
+   ========================================================================== */
+.whatsapp-automation-banner {
+    background: linear-gradient(135deg, rgba(37, 211, 102, 0.08), rgba(139, 92, 246, 0.08));
+    border: 1px solid rgba(37, 211, 102, 0.25);
+    border-radius: var(--radius-md);
+    padding: 16px 20px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.02);
+}
+
+.automation-banner-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.automation-pulse-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #128C7E;
+}
+
+.pulse-dot {
+    width: 9px;
+    height: 9px;
+    background-color: #25D366;
+    border-radius: 50%;
+    display: inline-block;
+    box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.7);
+    animation: pulse-green 2s infinite;
+}
+
+@keyframes pulse-green {
+    0% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.7);
+    }
+    70% {
+        transform: scale(1);
+        box-shadow: 0 0 0 8px rgba(37, 211, 102, 0);
+    }
+    100% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(37, 211, 102, 0);
+    }
+}
+
+.automation-banner-info p {
+    font-size: 12.5px;
+    color: var(--text-light);
+    margin: 0;
+}
+
+.automation-banner-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.btn-auto-dispatch {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 9px 16px;
+    font-size: 12.5px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    transition: all var(--transition-fast);
+}
+
+.btn-auto-dispatch:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(16, 185, 129, 0.45);
+    background: linear-gradient(135deg, #059669, #047857);
+}
+
+.btn-wa-settings, .btn-wa-logs {
+    background: white;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    padding: 8px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-main);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.btn-wa-settings:hover, .btn-wa-logs:hover {
+    border-color: var(--primary-purple);
+    color: var(--primary-purple);
+    background: rgba(139, 92, 246, 0.05);
+}
+
+.btn-send-api-single {
+    background: linear-gradient(135deg, #6366f1, #4f46e5);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 5px 11px;
+    font-size: 11px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.btn-send-api-single:hover {
+    background: linear-gradient(135deg, #4f46e5, #4338ca);
+    transform: translateY(-1px);
+}
+
+.wa-log-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12.5px;
+    margin-top: 12px;
+}
+
+.wa-log-table th {
+    text-align: left;
+    padding: 10px 12px;
+    background: rgba(243, 244, 246, 0.8);
+    font-weight: 600;
+    color: var(--text-main);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.wa-log-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid rgba(229, 231, 235, 0.8);
+    color: var(--text-main);
+}
+
+.badge-sent {
+    background: rgba(16, 185, 129, 0.12);
+    color: #059669;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.badge-simulated {
+    background: rgba(59, 130, 246, 0.12);
+    color: #2563eb;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.badge-failed {
+    background: rgba(239, 68, 68, 0.12);
+    color: #dc2626;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+
 
 
