@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
                      localStorage.getItem('gc_api_base') || 
                      (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
                         ? 'http://localhost:8080/api' 
-                        : 'https://church-management-backend.onrender.com/api');
+                        : 'https://church-management-backend-hwtc.onrender.com/api');
 
     let state = {
         token: localStorage.getItem('gc_token') || null,
