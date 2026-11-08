@@ -1,0 +1,9 @@
+target/
+.mvn/
+.git/
+.gitignore
+*.log
+.vscode/
+.idea/
+graceconnect.db
+mvnw*

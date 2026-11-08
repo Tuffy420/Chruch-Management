@@ -7,7 +7,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // ==========================================================================
     // 1. DATA STATE & CONFIGURATION
     // ==========================================================================
-    const API_BASE = 'http://localhost:8080/api';
+    const API_BASE = window.__API_BASE__ || 
+                     localStorage.getItem('gc_api_base') || 
+                     (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+                        ? 'http://localhost:8080/api' 
+                        : 'https://church-management-backend.onrender.com/api');
 
     let state = {
         token: localStorage.getItem('gc_token') || null,
