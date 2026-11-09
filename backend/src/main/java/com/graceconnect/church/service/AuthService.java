@@ -19,6 +19,16 @@ import java.time.LocalDateTime;
 @Service
 public class AuthService {
 
+    private static final int MAX_FAILED_ATTEMPTS = 5;
+    private static final long LOCKOUT_DURATION_MS = 15 * 60 * 1000; // 15 minutes
+
+    private static class LoginAttemptInfo {
+        int failedAttempts = 0;
+        long lockedUntil = 0;
+    }
+
+    private final java.util.concurrent.ConcurrentHashMap<String, LoginAttemptInfo> attemptMap = new java.util.concurrent.ConcurrentHashMap<>();
+
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
@@ -33,6 +43,38 @@ public class AuthService {
         this.jwtUtil = jwtUtil;
         this.authenticationManager = authenticationManager;
         this.activityLogRepository = activityLogRepository;
+    }
+
+    private void checkLockout(String email) {
+        String key = email.toLowerCase().trim();
+        LoginAttemptInfo info = attemptMap.get(key);
+        if (info != null && info.lockedUntil > System.currentTimeMillis()) {
+            long remainingMinutes = Math.max(1, (info.lockedUntil - System.currentTimeMillis()) / (60 * 1000));
+            throw new IllegalArgumentException("Account temporarily locked due to multiple failed login attempts. Try again in " + remainingMinutes + " minute(s).");
+        }
+    }
+
+    private void recordFailedAttempt(String email) {
+        String key = email.toLowerCase().trim();
+        LoginAttemptInfo info = attemptMap.computeIfAbsent(key, k -> new LoginAttemptInfo());
+        info.failedAttempts++;
+        if (info.failedAttempts >= MAX_FAILED_ATTEMPTS) {
+            info.lockedUntil = System.currentTimeMillis() + LOCKOUT_DURATION_MS;
+            info.failedAttempts = 0; // reset counter once locked
+        }
+
+        try {
+            activityLogRepository.save(ActivityLog.builder()
+                    .action("FAILED login attempt for: " + email + " (Consecutive failures: " + info.failedAttempts + ")")
+                    .module("Security")
+                    .performedBy("Anonymous")
+                    .timestamp(LocalDateTime.now())
+                    .build());
+        } catch (Exception ignored) { }
+    }
+
+    private void resetFailedAttempts(String email) {
+        attemptMap.remove(email.toLowerCase().trim());
     }
 
     @Transactional
@@ -62,19 +104,29 @@ public class AuthService {
     }
 
     public JwtResponse login(LoginRequest request) {
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
-        );
+        String email = request.getEmail().trim();
+        checkLockout(email);
 
-        User user = userRepository.findByEmail(request.getEmail())
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(email, request.getPassword())
+            );
+        } catch (org.springframework.security.core.AuthenticationException e) {
+            recordFailedAttempt(email);
+            throw e;
+        }
+
+        resetFailedAttempts(email);
+
+        User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("User details not found!"));
 
         String token = jwtUtil.generateToken(user.getEmail(), user.getRole());
 
         // Audit Log
         activityLogRepository.save(ActivityLog.builder()
-                .action("User login successful: " + user.getFullName())
-                .module("System")
+                .action("User login successful: " + user.getFullName() + " (" + user.getRole() + ")")
+                .module("Security")
                 .performedBy(user.getFullName())
                 .timestamp(LocalDateTime.now())
                 .build());

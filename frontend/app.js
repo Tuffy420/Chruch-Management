@@ -36,8 +36,63 @@ document.addEventListener('DOMContentLoaded', () => {
     // 2. AUTHENTICATION & REST WRAPPERS
     // ==========================================================================
 
+    let tokenExpiryTimer = null;
+
+    // Checks if a JWT token is expired by decoding its payload without external libraries
+    function isJwtExpired(token) {
+        if (!token) return true;
+        try {
+            const parts = token.split('.');
+            if (parts.length !== 3) return true;
+            const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+            const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+            }).join(''));
+            const payload = JSON.parse(jsonPayload);
+            if (!payload.exp) return false;
+            // exp is in seconds, Date.now() is in milliseconds
+            return (payload.exp * 1000) <= Date.now();
+        } catch (e) {
+            return true;
+        }
+    }
+
+    // Schedules a precise timer to auto-logout when the 30-minute token expires
+    function scheduleTokenAutoExpiry(token) {
+        if (tokenExpiryTimer) clearTimeout(tokenExpiryTimer);
+        if (!token) return;
+        try {
+            const parts = token.split('.');
+            if (parts.length !== 3) return;
+            const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+            const payload = JSON.parse(atob(base64));
+            if (payload.exp) {
+                const msRemaining = (payload.exp * 1000) - Date.now();
+                if (msRemaining > 0) {
+                    tokenExpiryTimer = setTimeout(() => {
+                        showToast('Session Expired', 'Your 30-minute session has expired for security. Please sign in again.', 'warning');
+                        logout(true);
+                    }, msRemaining);
+                } else {
+                    logout(true);
+                }
+            }
+        } catch (e) { }
+    }
+
     function checkAuth() {
         if (state.token) {
+            // Check for proactive 30-minute token expiration before attempting any fetches
+            if (isJwtExpired(state.token)) {
+                state.token = null;
+                state.user = null;
+                localStorage.removeItem('gc_token');
+                localStorage.removeItem('gc_user');
+                loginScreen.style.display = 'flex';
+                appContainer.style.display = 'none';
+                return;
+            }
+
             loginScreen.style.display = 'none';
             appContainer.style.display = 'grid';
 
@@ -48,6 +103,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 profileRole.textContent = state.user.role;
                 profileAvatar.src = `https://placehold.co/100/3b82f6/ffffff?text=${state.user.fullName[0]}`;
             }
+
+            // Schedule auto-expiry for remaining token lifetime
+            scheduleTokenAutoExpiry(state.token);
 
             // Initial Dashboard Load
             switchPage('dashboard');
@@ -71,7 +129,8 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const response = await fetch(`${API_BASE}${endpoint}`, options);
             if (response.status === 401 || response.status === 403) {
-                logout();
+                logout(true);
+                showToast('Session Expired', 'Session expired, please login again.', 'warning');
                 throw new Error('Session expired, please login again.');
             }
             const json = await response.json();
@@ -85,12 +144,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function logout() {
+    function logout(silent = false) {
+        if (tokenExpiryTimer) clearTimeout(tokenExpiryTimer);
         state.token = null;
         state.user = null;
         localStorage.removeItem('gc_token');
         localStorage.removeItem('gc_user');
-        showToast('Signed Out', 'You have been securely signed out.', 'info');
+        if (!silent) {
+            showToast('Signed Out', 'You have been securely signed out.', 'info');
+        }
         checkAuth();
     }
 
@@ -104,11 +166,23 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Password visibility toggle on login screen
+    const toggleLoginPasswordBtn = document.getElementById('toggleLoginPasswordBtn');
+    const loginPasswordInput = document.getElementById('loginPassword');
+    const toggleLoginPasswordIcon = document.getElementById('toggleLoginPasswordIcon');
+    if (toggleLoginPasswordBtn && loginPasswordInput && toggleLoginPasswordIcon) {
+        toggleLoginPasswordBtn.addEventListener('click', () => {
+            const isPassword = loginPasswordInput.type === 'password';
+            loginPasswordInput.type = isPassword ? 'text' : 'password';
+            toggleLoginPasswordIcon.className = isPassword ? 'ri-eye-off-line' : 'ri-eye-line';
+        });
+    }
+
     // Handle Login Submit
     if (loginForm) {
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const email = document.getElementById('loginEmail').value;
+            const email = document.getElementById('loginEmail').value.trim();
             const password = document.getElementById('loginPassword').value;
 
             try {
@@ -133,6 +207,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 localStorage.setItem('gc_token', state.token);
                 localStorage.setItem('gc_user', JSON.stringify(state.user));
+
+                // Schedule auto-expiry timer
+                scheduleTokenAutoExpiry(state.token);
 
                 showToast('Login Successful', `Welcome back, ${state.user.fullName}!`);
                 checkAuth();

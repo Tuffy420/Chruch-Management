@@ -32,17 +32,21 @@
             <form id="loginForm">
                 <div class="form-group">
                     <label>Email Address</label>
-                    <input type="email" id="loginEmail" class="form-control" placeholder="admin@graceconnect.org" required value="admin@graceconnect.org">
+                    <input type="email" id="loginEmail" class="form-control" placeholder="name@graceconnect.org" required autocomplete="username">
                 </div>
                 <div class="form-group">
                     <label>Password</label>
-                    <input type="password" id="loginPassword" class="form-control" placeholder="••••••••" required value="admin123">
+                    <div style="position:relative;">
+                        <input type="password" id="loginPassword" class="form-control" placeholder="••••••••" required autocomplete="current-password" style="padding-right:38px;">
+                        <button type="button" id="toggleLoginPasswordBtn" title="Toggle password visibility" style="position:absolute; right:10px; top:50%; transform:translateY(-50%); background:none; border:none; color:var(--text-light); cursor:pointer; font-size:18px; padding:0; display:flex; align-items:center;">
+                            <i class="ri-eye-line" id="toggleLoginPasswordIcon"></i>
+                        </button>
+                    </div>
                 </div>
-                <button type="submit" class="login-btn">Sign In to Dashboard</button>
+                <button type="submit" class="login-btn" id="loginSubmitBtn">Sign In to Dashboard</button>
             </form>
             <div class="login-footer">
-                <p>Protected by Spring Security & JWT encryption</p>
-                <p style="font-size:10px; margin-top:4px; opacity:0.6;">Preseeded: admin@graceconnect.org / admin123</p>
+                <p><i class="ri-shield-check-line" style="color:var(--primary-teal);"></i> 256-bit Encrypted Session • 30-min Expiration</p>
             </div>
         </div>
     </div>
