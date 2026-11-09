@@ -85,3 +85,4 @@ public class EmailController {
         return ResponseEntity.ok(ApiResponse.success("Email delivery logs retrieved", logs));
     }
 }
+

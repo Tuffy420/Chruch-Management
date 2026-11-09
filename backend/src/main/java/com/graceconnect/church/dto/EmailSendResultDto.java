@@ -19,3 +19,4 @@ public class EmailSendResultDto {
     private String summaryMessage;
     private List<String> dispatchedNames;
 }
+

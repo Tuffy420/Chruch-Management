@@ -442,11 +442,64 @@
                     </div>
                 </div>
 
-                <!-- Financial Type Filter Tabs -->
-                <div class="celebration-filter-tabs">
-                    <button class="celebration-filter-btn active" id="filterLedgerAll">All Transactions</button>
-                    <button class="celebration-filter-btn" id="filterLedgerIncome"><i class="ri-arrow-down-circle-line" style="color:var(--primary-teal)"></i> Offerings & Tithes</button>
-                    <button class="celebration-filter-btn" id="filterLedgerExpense"><i class="ri-arrow-up-circle-line" style="color:var(--primary-rose)"></i> Church Expenses</button>
+                <!-- Financial Advanced Filter Bar -->
+                <div class="accounts-filter-bar">
+                    <div class="filter-row-primary">
+                        <div class="celebration-filter-tabs" style="margin-bottom:0;">
+                            <button class="celebration-filter-btn active" id="filterLedgerAll">All Transactions</button>
+                            <button class="celebration-filter-btn" id="filterLedgerIncome"><i class="ri-arrow-down-circle-line" style="color:var(--primary-teal)"></i> Offerings & Tithes</button>
+                            <button class="celebration-filter-btn" id="filterLedgerExpense"><i class="ri-arrow-up-circle-line" style="color:var(--primary-rose)"></i> Church Expenses</button>
+                        </div>
+                        <div class="accounts-search-box">
+                            <i class="ri-search-line"></i>
+                            <input type="text" id="accountsSearchInput" placeholder="Search member, vendor, fund, notes...">
+                        </div>
+                    </div>
+
+                    <div class="filter-row-secondary">
+                        <div class="filter-group">
+                            <label for="ledgerDatePeriodFilter"><i class="ri-calendar-line"></i> Period:</label>
+                            <select class="form-control-sm" id="ledgerDatePeriodFilter">
+                                <option value="all">All Dates</option>
+                                <option value="this-sunday">This / Last Sunday</option>
+                                <option value="this-month">This Month</option>
+                                <option value="last-month">Last Month</option>
+                                <option value="this-year">This Year</option>
+                                <option value="custom">Custom Date Range...</option>
+                            </select>
+                        </div>
+
+                        <div class="filter-group custom-date-inputs" id="customDateRangeGroup" style="display:none;">
+                            <input type="date" class="form-control-sm" id="ledgerStartDate" title="From Date">
+                            <span style="color:var(--text-light); font-size:12px;">to</span>
+                            <input type="date" class="form-control-sm" id="ledgerEndDate" title="To Date">
+                        </div>
+
+                        <div class="filter-group">
+                            <label for="ledgerFundFilter"><i class="ri-wallet-line"></i> Fund / Category:</label>
+                            <select class="form-control-sm" id="ledgerFundFilter">
+                                <option value="all">All Funds & Categories</option>
+                            </select>
+                        </div>
+
+                        <div class="filter-group">
+                            <label for="ledgerSortFilter"><i class="ri-sort-desc"></i> Sort By:</label>
+                            <select class="form-control-sm" id="ledgerSortFilter">
+                                <option value="date-desc">Newest Date</option>
+                                <option value="date-asc">Oldest Date</option>
+                                <option value="amount-desc">Highest Amount (₹)</option>
+                                <option value="amount-asc">Lowest Amount (₹)</option>
+                            </select>
+                        </div>
+
+                        <button class="subpage-btn" id="btnResetLedgerFilters" title="Reset all filters" style="padding:5px 12px; font-size:11.5px;">
+                            <i class="ri-refresh-line"></i> Reset Filters
+                        </button>
+
+                        <span class="filter-status-indicator" id="accountsCountBadge">
+                            Showing all records
+                        </span>
+                    </div>
                 </div>
 
                 <div class="records-grid" id="accountsListContainer">

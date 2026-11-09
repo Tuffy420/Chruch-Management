@@ -51,3 +51,4 @@ public class EmailSetting {
     @Column(name = "last_run_date")
     private LocalDate lastRunDate;
 }
+

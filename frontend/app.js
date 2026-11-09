@@ -773,91 +773,188 @@ document.addEventListener('DOMContentLoaded', () => {
         'General Church Operating Expense'
     ];
 
-    let currentFinancialFilter = 'all'; // all, INCOME, EXPENSE
+    let ledgerFilterState = {
+        type: 'all', // all, INCOME, EXPENSE
+        period: 'all', // all, this-sunday, this-month, last-month, this-year, custom
+        startDate: '',
+        endDate: '',
+        fund: 'all',
+        sort: 'date-desc',
+        search: ''
+    };
+
+    function populateFundFilterDropdown(transactions) {
+        const fundSelect = document.getElementById('ledgerFundFilter');
+        if (!fundSelect) return;
+        const currentSelected = fundSelect.value || 'all';
+        const fundsSet = new Set();
+        (transactions || []).forEach(t => {
+            if (t.fund && t.fund.trim()) fundsSet.add(t.fund.trim());
+        });
+        const sortedFunds = Array.from(fundsSet).sort();
+        let html = '<option value="all">All Funds & Categories</option>';
+        sortedFunds.forEach(f => {
+            html += `<option value="${f}" ${f === currentSelected ? 'selected' : ''}>${f}</option>`;
+        });
+        fundSelect.innerHTML = html;
+        if (sortedFunds.includes(currentSelected)) {
+            fundSelect.value = currentSelected;
+        } else {
+            fundSelect.value = 'all';
+            ledgerFilterState.fund = 'all';
+        }
+    }
+
+    function applyAndRenderAccounts() {
+        const container = document.getElementById('accountsListContainer');
+        if (!container) return;
+        const allTransactions = state.transactions || [];
+
+        // 1. Filter transactions
+        let filtered = allTransactions.filter(t => {
+            // Type Filter
+            if (ledgerFilterState.type !== 'all' && t.type !== ledgerFilterState.type) {
+                return false;
+            }
+
+            // Fund Filter
+            if (ledgerFilterState.fund !== 'all' && t.fund !== ledgerFilterState.fund) {
+                return false;
+            }
+
+            // Date Period Filter
+            if (ledgerFilterState.period !== 'all' && t.date) {
+                const today = new Date();
+                const todayIso = today.toISOString().split('T')[0];
+                if (ledgerFilterState.period === 'this-sunday') {
+                    const sundayDate = getLastSundayDate();
+                    if (t.date !== sundayDate) return false;
+                } else if (ledgerFilterState.period === 'this-month') {
+                    const currentMonthPrefix = todayIso.substring(0, 7); // YYYY-MM
+                    if (!t.date.startsWith(currentMonthPrefix)) return false;
+                } else if (ledgerFilterState.period === 'last-month') {
+                    const lastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+                    const lastMonthPrefix = lastMonth.toISOString().substring(0, 7);
+                    if (!t.date.startsWith(lastMonthPrefix)) return false;
+                } else if (ledgerFilterState.period === 'this-year') {
+                    const currentYearPrefix = today.getFullYear().toString();
+                    if (!t.date.startsWith(currentYearPrefix)) return false;
+                } else if (ledgerFilterState.period === 'custom') {
+                    if (ledgerFilterState.startDate && t.date < ledgerFilterState.startDate) return false;
+                    if (ledgerFilterState.endDate && t.date > ledgerFilterState.endDate) return false;
+                }
+            }
+
+            // Search Term Filter
+            if (ledgerFilterState.search) {
+                const term = ledgerFilterState.search.toLowerCase().trim();
+                const member = (t.memberName || '').toLowerCase();
+                const fund = (t.fund || '').toLowerCase();
+                const notes = (t.notes || '').toLowerCase();
+                const amtStr = (t.amount != null ? t.amount.toString() : '');
+                if (!member.includes(term) && !fund.includes(term) && !notes.includes(term) && !amtStr.includes(term)) {
+                    return false;
+                }
+            }
+
+            return true;
+        });
+
+        // 2. Sort transactions
+        filtered.sort((a, b) => {
+            if (ledgerFilterState.sort === 'date-desc') {
+                return new Date(b.date) - new Date(a.date);
+            } else if (ledgerFilterState.sort === 'date-asc') {
+                return new Date(a.date) - new Date(b.date);
+            } else if (ledgerFilterState.sort === 'amount-desc') {
+                return (b.amount || 0) - (a.amount || 0);
+            } else if (ledgerFilterState.sort === 'amount-asc') {
+                return (a.amount || 0) - (b.amount || 0);
+            }
+            return 0;
+        });
+
+        // 3. Dynamic KPI recalculation based on active filtered transactions
+        let filteredIncome = 0;
+        let filteredExpense = 0;
+        filtered.forEach(t => {
+            if (t.type === 'INCOME') filteredIncome += (t.amount || 0);
+            else if (t.type === 'EXPENSE') filteredExpense += (t.amount || 0);
+        });
+
+        const incomeEl = document.getElementById('ledgerTotalIncome');
+        const expenseEl = document.getElementById('ledgerTotalExpense');
+        const balanceEl = document.getElementById('ledgerNetBalance');
+        if (incomeEl) incomeEl.textContent = `₹${filteredIncome.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
+        if (expenseEl) expenseEl.textContent = `₹${filteredExpense.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
+        if (balanceEl) {
+            const net = filteredIncome - filteredExpense;
+            balanceEl.textContent = `₹${net.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
+            balanceEl.style.color = net >= 0 ? 'var(--primary-teal)' : 'var(--primary-rose)';
+        }
+
+        // 4. Update count badge
+        const countBadge = document.getElementById('accountsCountBadge');
+        if (countBadge) {
+            if (filtered.length === allTransactions.length) {
+                countBadge.textContent = `Showing all ${allTransactions.length} records`;
+            } else {
+                countBadge.textContent = `Showing ${filtered.length} of ${allTransactions.length} records`;
+            }
+        }
+
+        // 5. Render records list
+        if (filtered.length === 0) {
+            container.innerHTML = `
+                <div style="padding: 40px 24px; text-align: center; color: var(--text-light); width: 100%;">
+                    <i class="ri-search-eye-line" style="font-size: 38px; color: var(--primary-purple); display: block; margin-bottom: 12px; opacity: 0.7;"></i>
+                    <p style="font-size: 14px; font-weight: 500;">No transactions found matching your criteria.</p>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = filtered.map(t => {
+            const isIncome = t.type === 'INCOME';
+            const color = isIncome ? 'var(--primary-teal)' : 'var(--primary-rose)';
+            const bg = isIncome ? 'rgba(13, 148, 136, 0.08)' : 'rgba(244, 63, 94, 0.08)';
+            const symbol = isIncome ? '+' : '-';
+            const icon = isIncome ? 'ri-hand-coin-line' : 'ri-shopping-cart-2-line';
+            return `
+                <div class="records-card">
+                    <div class="record-avatar" style="background: ${bg}; display: flex; align-items: center; justify-content: center; font-size: 22px; color: ${color}">
+                        <i class="${icon}"></i>
+                    </div>
+                    <div class="record-info" style="flex:1;">
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                            <span class="record-title">${t.memberName || (isIncome ? 'Sunday Congregation' : 'Church Operational Vendor')}</span>
+                            <span class="record-tag" style="background: ${bg}; color: ${color}; font-weight: 700; font-size: 12px; padding: 4px 10px;">
+                                ${symbol}₹${t.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                            </span>
+                        </div>
+                        <span class="record-subtitle" style="font-weight:600; color:var(--text-main);"><i class="ri-wallet-3-line"></i> ${t.fund}</span>
+                        <span class="record-subtitle" style="display:block; margin-top:2px;">Memo: ${t.notes || 'No description'} • Date: ${t.date}</span>
+                        <div style="margin-top:10px; display:flex; gap:8px;">
+                            <button class="subpage-btn" style="padding:3px 8px; font-size:11px;" onclick="deleteTransactionRecord('${t.id}')">
+                                <i class="ri-delete-bin-line"></i> Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
 
     // Fetch Accounts ledger with live KPI aggregation and filtering
     async function fetchAccountsTab(search = '') {
         const container = document.getElementById('accountsListContainer');
         if (!container) return;
         try {
-            const json = await apiRequest('/accounts?size=300&sortBy=date&sortDir=desc');
-            let transactions = json.data.content;
-            state.transactions = transactions;
-
-            // Compute ledger summary aggregates
-            let totalIncome = 0;
-            let totalExpense = 0;
-            transactions.forEach(t => {
-                if (t.type === 'INCOME') totalIncome += (t.amount || 0);
-                else if (t.type === 'EXPENSE') totalExpense += (t.amount || 0);
-            });
-
-            const incomeEl = document.getElementById('ledgerTotalIncome');
-            const expenseEl = document.getElementById('ledgerTotalExpense');
-            const balanceEl = document.getElementById('ledgerNetBalance');
-            if (incomeEl) incomeEl.textContent = `₹${totalIncome.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
-            if (expenseEl) expenseEl.textContent = `₹${totalExpense.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
-            if (balanceEl) {
-                const net = totalIncome - totalExpense;
-                balanceEl.textContent = `₹${net.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
-                balanceEl.style.color = net >= 0 ? 'var(--primary-teal)' : 'var(--primary-rose)';
-            }
-
-            // Apply financial type filter
-            if (currentFinancialFilter !== 'all') {
-                transactions = transactions.filter(t => t.type === currentFinancialFilter);
-            }
-
-            // Apply text search filter
-            if (search.trim() !== '') {
-                const term = search.toLowerCase().trim();
-                transactions = transactions.filter(t => 
-                    (t.memberName && t.memberName.toLowerCase().includes(term)) ||
-                    (t.fund && t.fund.toLowerCase().includes(term)) ||
-                    (t.type && t.type.toLowerCase().includes(term)) ||
-                    (t.notes && t.notes.toLowerCase().includes(term))
-                );
-            }
-
-            if (transactions.length === 0) {
-                container.innerHTML = `
-                    <div style="padding: 40px 24px; text-align: center; color: var(--text-light); width: 100%;">
-                        <i class="ri-search-eye-line" style="font-size: 38px; color: var(--primary-purple); display: block; margin-bottom: 12px; opacity: 0.7;"></i>
-                        <p style="font-size: 14px; font-weight: 500;">No transactions found matching your criteria.</p>
-                    </div>
-                `;
-                return;
-            }
-
-            container.innerHTML = transactions.map(t => {
-                const isIncome = t.type === 'INCOME';
-                const color = isIncome ? 'var(--primary-teal)' : 'var(--primary-rose)';
-                const bg = isIncome ? 'rgba(13, 148, 136, 0.08)' : 'rgba(244, 63, 94, 0.08)';
-                const symbol = isIncome ? '+' : '-';
-                const icon = isIncome ? 'ri-hand-coin-line' : 'ri-shopping-cart-2-line';
-                return `
-                    <div class="records-card">
-                        <div class="record-avatar" style="background: ${bg}; display: flex; align-items: center; justify-content: center; font-size: 22px; color: ${color}">
-                            <i class="${icon}"></i>
-                        </div>
-                        <div class="record-info" style="flex:1;">
-                            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                                <span class="record-title">${t.memberName || (isIncome ? 'Sunday Congregation' : 'Church Operational Vendor')}</span>
-                                <span class="record-tag" style="background: ${bg}; color: ${color}; font-weight: 700; font-size: 12px; padding: 4px 10px;">
-                                    ${symbol}₹${t.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                                </span>
-                            </div>
-                            <span class="record-subtitle" style="font-weight:600; color:var(--text-main);"><i class="ri-wallet-3-line"></i> ${t.fund}</span>
-                            <span class="record-subtitle" style="display:block; margin-top:2px;">Memo: ${t.notes || 'No description'} • Date: ${t.date}</span>
-                            <div style="margin-top:10px; display:flex; gap:8px;">
-                                <button class="subpage-btn" style="padding:3px 8px; font-size:11px;" onclick="deleteTransactionRecord('${t.id}')">
-                                    <i class="ri-delete-bin-line"></i> Delete
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }).join('');
+            const json = await apiRequest('/accounts?size=500&sortBy=date&sortDir=desc');
+            state.transactions = json.data.content || [];
+            populateFundFilterDropdown(state.transactions);
+            if (search) ledgerFilterState.search = search;
+            applyAndRenderAccounts();
         } catch (e) {
             container.innerHTML = `<p style="padding: 24px; color: var(--primary-rose);">Unable to load transactions.</p>`;
         }
@@ -989,7 +1086,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const filterLedgerExpense = document.getElementById('filterLedgerExpense');
 
     function setLedgerFilter(filter) {
-        currentFinancialFilter = filter;
+        ledgerFilterState.type = filter;
         [filterLedgerAll, filterLedgerIncome, filterLedgerExpense].forEach(btn => {
             if (btn) btn.classList.remove('active');
         });
@@ -997,13 +1094,105 @@ document.addEventListener('DOMContentLoaded', () => {
         if (filter === 'INCOME' && filterLedgerIncome) filterLedgerIncome.classList.add('active');
         if (filter === 'EXPENSE' && filterLedgerExpense) filterLedgerExpense.classList.add('active');
 
-        const searchVal = document.getElementById('searchInput') ? document.getElementById('searchInput').value.trim() : '';
-        fetchAccountsTab(searchVal);
+        applyAndRenderAccounts();
     }
 
     if (filterLedgerAll) filterLedgerAll.addEventListener('click', () => setLedgerFilter('all'));
     if (filterLedgerIncome) filterLedgerIncome.addEventListener('click', () => setLedgerFilter('INCOME'));
     if (filterLedgerExpense) filterLedgerExpense.addEventListener('click', () => setLedgerFilter('EXPENSE'));
+
+    // Accounts Search Box
+    const accountsSearchInput = document.getElementById('accountsSearchInput');
+    if (accountsSearchInput) {
+        let accountsSearchTimeout;
+        accountsSearchInput.addEventListener('input', () => {
+            clearTimeout(accountsSearchTimeout);
+            accountsSearchTimeout = setTimeout(() => {
+                ledgerFilterState.search = accountsSearchInput.value.trim();
+                applyAndRenderAccounts();
+            }, 250);
+        });
+    }
+
+    // Date Period Dropdown
+    const ledgerDatePeriodFilter = document.getElementById('ledgerDatePeriodFilter');
+    const customDateRangeGroup = document.getElementById('customDateRangeGroup');
+    const ledgerStartDate = document.getElementById('ledgerStartDate');
+    const ledgerEndDate = document.getElementById('ledgerEndDate');
+
+    if (ledgerDatePeriodFilter) {
+        ledgerDatePeriodFilter.addEventListener('change', () => {
+            ledgerFilterState.period = ledgerDatePeriodFilter.value;
+            if (ledgerFilterState.period === 'custom') {
+                if (customDateRangeGroup) customDateRangeGroup.style.display = 'inline-flex';
+            } else {
+                if (customDateRangeGroup) customDateRangeGroup.style.display = 'none';
+            }
+            applyAndRenderAccounts();
+        });
+    }
+
+    if (ledgerStartDate) {
+        ledgerStartDate.addEventListener('change', () => {
+            ledgerFilterState.startDate = ledgerStartDate.value;
+            applyAndRenderAccounts();
+        });
+    }
+
+    if (ledgerEndDate) {
+        ledgerEndDate.addEventListener('change', () => {
+            ledgerFilterState.endDate = ledgerEndDate.value;
+            applyAndRenderAccounts();
+        });
+    }
+
+    // Fund Filter Dropdown
+    const ledgerFundFilter = document.getElementById('ledgerFundFilter');
+    if (ledgerFundFilter) {
+        ledgerFundFilter.addEventListener('change', () => {
+            ledgerFilterState.fund = ledgerFundFilter.value;
+            applyAndRenderAccounts();
+        });
+    }
+
+    // Sort Filter Dropdown
+    const ledgerSortFilter = document.getElementById('ledgerSortFilter');
+    if (ledgerSortFilter) {
+        ledgerSortFilter.addEventListener('change', () => {
+            ledgerFilterState.sort = ledgerSortFilter.value;
+            applyAndRenderAccounts();
+        });
+    }
+
+    // Reset Filters Button
+    const btnResetLedgerFilters = document.getElementById('btnResetLedgerFilters');
+    if (btnResetLedgerFilters) {
+        btnResetLedgerFilters.addEventListener('click', () => {
+            ledgerFilterState = {
+                type: 'all',
+                period: 'all',
+                startDate: '',
+                endDate: '',
+                fund: 'all',
+                sort: 'date-desc',
+                search: ''
+            };
+            if (accountsSearchInput) accountsSearchInput.value = '';
+            if (ledgerDatePeriodFilter) ledgerDatePeriodFilter.value = 'all';
+            if (customDateRangeGroup) customDateRangeGroup.style.display = 'none';
+            if (ledgerStartDate) ledgerStartDate.value = '';
+            if (ledgerEndDate) ledgerEndDate.value = '';
+            if (ledgerFundFilter) ledgerFundFilter.value = 'all';
+            if (ledgerSortFilter) ledgerSortFilter.value = 'date-desc';
+
+            [filterLedgerAll, filterLedgerIncome, filterLedgerExpense].forEach(btn => {
+                if (btn) btn.classList.remove('active');
+            });
+            if (filterLedgerAll) filterLedgerAll.classList.add('active');
+
+            applyAndRenderAccounts();
+        });
+    }
 
     // Date helper buttons in Transaction Modal
     const btnDateToday = document.getElementById('btnDateToday');

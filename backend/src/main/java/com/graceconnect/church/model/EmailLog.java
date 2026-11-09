@@ -45,3 +45,4 @@ public class EmailLog {
     @Column(name = "sent_at", nullable = false)
     private LocalDateTime sentAt;
 }
+

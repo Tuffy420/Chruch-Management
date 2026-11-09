@@ -16,3 +16,4 @@ public interface EmailLogRepository extends JpaRepository<EmailLog, Long> {
     boolean existsByRecipientEmailAndOccasionAndSentAtBetween(
             String recipientEmail, String occasion, LocalDateTime start, LocalDateTime end);
 }
+

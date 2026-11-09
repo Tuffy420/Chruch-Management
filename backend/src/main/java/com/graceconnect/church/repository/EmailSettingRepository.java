@@ -10,3 +10,4 @@ import java.util.Optional;
 public interface EmailSettingRepository extends JpaRepository<EmailSetting, Long> {
     Optional<EmailSetting> findFirstByOrderByIdAsc();
 }
+

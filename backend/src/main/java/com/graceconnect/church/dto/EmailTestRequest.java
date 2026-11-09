@@ -14,3 +14,4 @@ public class EmailTestRequest {
     private String subject;
     private String messageBody;
 }
+
