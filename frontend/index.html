@@ -459,28 +459,28 @@
                 <div class="subpage-header">
                     <div>
                         <h2>Birthdays Directory</h2>
-                        <span style="font-size: 13px; color: var(--text-light);">Automated & manual scripture birthday blessings via WhatsApp</span>
+                        <span style="font-size: 13px; color: var(--text-light);">Automated & manual scripture birthday blessings via Email</span>
                     </div>
                 </div>
 
-                <!-- WhatsApp Automation Banner -->
-                <div class="whatsapp-automation-banner">
+                <!-- Email Automation Banner -->
+                <div class="email-automation-banner">
                     <div class="automation-banner-info">
                         <div class="automation-pulse-badge">
                             <span class="pulse-dot"></span>
-                            <span>Automated Daily Dispatch: <strong id="waAutoStatusText">ACTIVE</strong></span>
+                            <span>Automated Daily Email Dispatch: <strong id="emailAutoStatusText">ACTIVE</strong></span>
                         </div>
-                        <p>Scripture blessings & devotional thoughts auto-dispatch to today's celebrants daily at <strong>08:00 AM</strong>.</p>
+                        <p>Scripture blessings & devotional thoughts auto-dispatch to today's celebrants' registered email addresses daily at <strong>08:00 AM</strong>.</p>
                     </div>
                     <div class="automation-banner-actions">
-                        <button class="btn-auto-dispatch" id="btnAutoDispatchBday">
-                            <i class="ri-flashlight-fill"></i> Auto-Send Today's Wishes Now
+                        <button class="btn-auto-dispatch" id="btnAutoDispatchBdayEmail">
+                            <i class="ri-mail-send-line"></i> Auto-Send Today's Email Wishes
                         </button>
-                        <button class="btn-wa-settings" onclick="openWhatsAppSettingsModal()">
-                            <i class="ri-settings-4-line"></i> API Settings
+                        <button class="btn-email-settings" onclick="openEmailSettingsModal()">
+                            <i class="ri-settings-4-line"></i> Email / SMTP Settings
                         </button>
-                        <button class="btn-wa-logs" onclick="openWhatsAppLogsModal()">
-                            <i class="ri-history-line"></i> Audit Logs
+                        <button class="btn-email-logs" onclick="openEmailLogsModal()">
+                            <i class="ri-history-line"></i> Email Audit Logs
                         </button>
                     </div>
                 </div>
@@ -502,28 +502,28 @@
                 <div class="subpage-header">
                     <div>
                         <h2>Marriage Anniversaries</h2>
-                        <span style="font-size: 13px; color: var(--text-light);">Automated covenant marriage blessings & scripture via WhatsApp</span>
+                        <span style="font-size: 13px; color: var(--text-light);">Automated covenant marriage blessings & scripture via Email</span>
                     </div>
                 </div>
 
-                <!-- WhatsApp Automation Banner -->
-                <div class="whatsapp-automation-banner">
+                <!-- Email Automation Banner -->
+                <div class="email-automation-banner">
                     <div class="automation-banner-info">
                         <div class="automation-pulse-badge">
                             <span class="pulse-dot"></span>
-                            <span>Automated Daily Dispatch: <strong id="waAutoStatusText2">ACTIVE</strong></span>
+                            <span>Automated Daily Email Dispatch: <strong id="emailAutoStatusText2">ACTIVE</strong></span>
                         </div>
-                        <p>Covenant wedding blessings auto-dispatch to married couples on their special day at <strong>08:00 AM</strong>.</p>
+                        <p>Covenant wedding blessings auto-dispatch to married couples' registered email on their special day at <strong>08:00 AM</strong>.</p>
                     </div>
                     <div class="automation-banner-actions">
-                        <button class="btn-auto-dispatch" id="btnAutoDispatchAnn">
-                            <i class="ri-flashlight-fill"></i> Auto-Send Today's Wishes Now
+                        <button class="btn-auto-dispatch" id="btnAutoDispatchAnnEmail">
+                            <i class="ri-mail-send-line"></i> Auto-Send Today's Email Wishes
                         </button>
-                        <button class="btn-wa-settings" onclick="openWhatsAppSettingsModal()">
-                            <i class="ri-settings-4-line"></i> API Settings
+                        <button class="btn-email-settings" onclick="openEmailSettingsModal()">
+                            <i class="ri-settings-4-line"></i> Email / SMTP Settings
                         </button>
-                        <button class="btn-wa-logs" onclick="openWhatsAppLogsModal()">
-                            <i class="ri-history-line"></i> Audit Logs
+                        <button class="btn-email-logs" onclick="openEmailLogsModal()">
+                            <i class="ri-history-line"></i> Email Audit Logs
                         </button>
                     </div>
                 </div>
@@ -636,8 +636,8 @@
             <section class="reminders-panel">
                 <div class="widget-section-header" style="display:flex; justify-content:space-between; align-items:center;">
                     <h3><i class="ri-alarm-warning-line"></i> Celebrations</h3>
-                    <button class="btn-send-api-single" id="btnQuickAutoDispatch" title="Auto-send WhatsApp wishes to all celebrants today" style="font-size:11px; padding:4px 9px;">
-                        <i class="ri-flashlight-fill"></i> Auto-Send All
+                    <button class="btn-send-api-single" id="btnQuickAutoDispatchEmail" title="Auto-send email blessings to all celebrants today" style="font-size:11px; padding:4px 9px; background:linear-gradient(135deg, #6366f1, #4f46e5);">
+                        <i class="ri-mail-send-line"></i> Auto-Send All
                     </button>
                 </div>
                 <div class="reminders-widget">
@@ -897,137 +897,149 @@
             </div>
         </div>
 
-        <!-- Modal: WhatsApp Blessing Preview & Dispatcher -->
-        <div class="modal-overlay" id="whatsappWishModal">
-            <div class="modal-content" style="max-width: 520px;">
-                <button class="modal-close-btn" data-close="whatsappWishModal"><i class="ri-close-line"></i></button>
+        <!-- Modal: Email Blessing Preview & Dispatcher -->
+        <div class="modal-overlay" id="emailWishModal">
+            <div class="modal-content" style="max-width: 540px;">
+                <button class="modal-close-btn" data-close="emailWishModal"><i class="ri-close-line"></i></button>
                 <div class="modal-header">
                     <h3 style="display:flex; align-items:center; gap:8px;">
-                        <i class="ri-whatsapp-fill" style="color: #25D366; font-size:24px;"></i> 
-                        <span id="waModalTitle">Send WhatsApp Blessing</span>
+                        <i class="ri-mail-send-fill" style="color: var(--primary-purple); font-size:24px;"></i> 
+                        <span id="emailModalTitle">Send Scripture Email Blessing</span>
                     </h3>
-                    <p id="waModalSubtitle">Personalized scripture wish ready to dispatch to member</p>
+                    <p id="emailModalSubtitle">Personalized scripture wish ready to dispatch to member's email</p>
                 </div>
 
                 <div style="background: rgba(243, 244, 246, 0.7); border-radius: 12px; padding: 12px 16px; margin-bottom: 16px; border: 1px solid var(--border-color);">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
                         <div>
-                            <span style="font-size: 13px; font-weight: 700; color: var(--text-main);" id="waRecipientName">-</span>
-                            <span style="font-size: 12px; color: var(--text-light); display:block;" id="waRecipientPhone">-</span>
+                            <span style="font-size: 13px; font-weight: 700; color: var(--text-main);" id="emailRecipientName">-</span>
+                            <span style="font-size: 12px; color: var(--text-light); display:block;" id="emailRecipientAddress">-</span>
                         </div>
-                        <span class="record-tag" id="waCelebrationTag" style="background: rgba(37, 211, 102, 0.12); color: #128C7E; font-weight:700;">
+                        <span class="record-tag" id="emailCelebrationTag" style="background: rgba(99, 102, 241, 0.12); color: #4f46e5; font-weight:700;">
                             Birthday Wish
                         </span>
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <label>Scripture & Message (Editable)</label>
-                    <textarea class="form-control" id="waMessageText" rows="7" style="resize:vertical; font-size:12px; line-height:1.5; font-family:inherit;"></textarea>
+                    <label for="emailSubjectText">Email Subject</label>
+                    <input type="text" class="form-control" id="emailSubjectText" style="font-size:12.5px; font-weight:600;">
+                </div>
+
+                <div class="form-group">
+                    <label for="emailMessageBodyText">Scripture Message Body (Editable)</label>
+                    <textarea class="form-control" id="emailMessageBodyText" rows="7" style="resize:vertical; font-size:12px; line-height:1.5; font-family:inherit;"></textarea>
                 </div>
 
                 <div class="modal-footer" style="justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
-                    <button type="button" class="btn-copy-greeting" id="waCopyBtn">
+                    <button type="button" class="btn-copy-greeting" id="emailCopyBtn">
                         <i class="ri-file-copy-line"></i> Copy Text
                     </button>
                     <div style="display:flex; gap:8px; align-items:center;">
-                        <button type="button" class="subpage-btn" data-close="whatsappWishModal">Close</button>
-                        <button type="button" class="btn-send-api-single" id="waApiDispatchBtn" style="padding: 7px 14px; font-size:12px;">
-                            <i class="ri-flashlight-fill"></i> Send via API
+                        <button type="button" class="subpage-btn" data-close="emailWishModal">Close</button>
+                        <button type="button" class="btn-send-api-single" id="emailApiDispatchBtn" style="padding: 7px 14px; font-size:12px; background:linear-gradient(135deg, #6366f1, #4f46e5);">
+                            <i class="ri-send-plane-2-line"></i> Send via Server
                         </button>
-                        <a id="waDirectSendBtn" href="#" target="_blank" class="btn-whatsapp">
-                            <i class="ri-whatsapp-line"></i> WhatsApp Web
+                        <a id="emailDirectMailtoBtn" href="#" target="_blank" class="btn-email">
+                            <i class="ri-mail-open-line"></i> Open in Mail App
                         </a>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Modal: WhatsApp Gateway API Settings -->
-        <div class="modal-overlay" id="whatsappSettingsModal">
+        <!-- Modal: Email Server & SMTP Settings -->
+        <div class="modal-overlay" id="emailSettingsModal">
             <div class="modal-content" style="max-width: 540px;">
-                <button class="modal-close-btn" data-close="whatsappSettingsModal"><i class="ri-close-line"></i></button>
+                <button class="modal-close-btn" data-close="emailSettingsModal"><i class="ri-close-line"></i></button>
                 <div class="modal-header">
                     <h3 style="display:flex; align-items:center; gap:8px;">
-                        <i class="ri-settings-4-fill" style="color: var(--primary-purple); font-size:22px;"></i>
-                        <span>WhatsApp Automation & API Settings</span>
+                        <i class="ri-mail-settings-line" style="color: var(--primary-purple); font-size:22px;"></i>
+                        <span>Email Server & SMTP Settings</span>
                     </h3>
-                    <p>Connect your Church WhatsApp Number via UltraMsg, Twilio, or Webhook Gateway</p>
+                    <p>Configure church outgoing mail server (Gmail, Outlook, Hostinger, or standard SMTP)</p>
                 </div>
-                <form id="whatsappSettingsForm">
-                    <div class="form-group">
-                        <label for="waProviderSelect">WhatsApp Gateway Provider</label>
-                        <select class="form-control" id="waProviderSelect">
-                            <option value="ULTRAMSG">UltraMsg (Scan QR with Church Phone - Instant & No Meta Approval)</option>
-                            <option value="TWILIO">Twilio Programmable WhatsApp</option>
-                            <option value="WEBHOOK">Custom Webhook / Evolution API / WPPConnect</option>
-                            <option value="SIMULATOR">Built-in Simulator (Audit logs & direct WhatsApp Web)</option>
-                        </select>
+                <form id="emailSettingsForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="smtpHost">SMTP Host Server</label>
+                            <input type="text" class="form-control" id="smtpHost" placeholder="e.g. smtp.gmail.com" value="smtp.gmail.com" required>
+                        </div>
+                        <div class="form-group" style="max-width: 130px;">
+                            <label for="smtpPort">Port</label>
+                            <input type="number" class="form-control" id="smtpPort" placeholder="587" value="587" required>
+                        </div>
                     </div>
 
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="waInstanceId">Instance ID / Phone ID</label>
-                            <input type="text" class="form-control" id="waInstanceId" placeholder="e.g. instance102938">
+                            <label for="smtpUsername">SMTP Email / Username</label>
+                            <input type="email" class="form-control" id="smtpUsername" placeholder="yourchurch@gmail.com">
                         </div>
                         <div class="form-group">
-                            <label for="waApiToken">API Token / Secret Key</label>
-                            <input type="password" class="form-control" id="waApiToken" placeholder="Enter API Token">
+                            <label for="smtpPassword">SMTP Password / App Password</label>
+                            <input type="password" class="form-control" id="smtpPassword" placeholder="App Password">
                         </div>
                     </div>
 
-                    <div class="form-group" id="waWebhookUrlGroup">
-                        <label for="waApiUrl">Gateway API / Webhook Endpoint (Optional)</label>
-                        <input type="url" class="form-control" id="waApiUrl" placeholder="Leave empty for provider default, or enter custom webhook URL">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="fromEmail">From Email Address</label>
+                            <input type="email" class="form-control" id="fromEmail" placeholder="blessings@graceconnect.org" value="blessings@graceconnect.org">
+                        </div>
+                        <div class="form-group">
+                            <label for="fromName">Sender Name</label>
+                            <input type="text" class="form-control" id="fromName" placeholder="GraceConnect Church" value="GraceConnect Church">
+                        </div>
                     </div>
 
                     <div class="form-group">
-                        <label for="waPastorSignature">Pastor / Church Signature</label>
-                        <input type="text" class="form-control" id="waPastorSignature" placeholder="e.g. Pastor & GraceConnect Church Family">
+                        <label for="emailPastorSignature">Pastor / Church Signature</label>
+                        <input type="text" class="form-control" id="emailPastorSignature" placeholder="Pastor & GraceConnect Church Family" value="Pastor & GraceConnect Church Family">
                     </div>
 
-                    <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 8px; padding: 12px 14px; margin-bottom: 16px;">
-                        <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-weight:600; color: #065f46; margin:0;">
-                            <input type="checkbox" id="waAutoSendDaily" checked style="width:16px; height:16px; accent-color:#10b981;">
-                            <span>Automatically run daily dispatch at 08:00 AM server time</span>
+                    <div style="background: rgba(99, 102, 241, 0.08); border: 1px solid rgba(99, 102, 241, 0.25); border-radius: 8px; padding: 12px 14px; margin-bottom: 16px;">
+                        <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-weight:600; color: #4338ca; margin:0;">
+                            <input type="checkbox" id="emailAutoSendDaily" checked style="width:16px; height:16px; accent-color:#6366f1;">
+                            <span>Automatically send blessings via Email every morning at 08:00 AM</span>
                         </label>
                         <span style="font-size: 11.5px; color: var(--text-light); display:block; margin-top:4px;">
-                            The Spring Boot server will find all birthdays and anniversaries each morning and auto-send their scripture blessing.
+                            The Spring Boot server will find all birthdays & anniversaries each morning and auto-send their scripture email.
                         </span>
                     </div>
 
                     <div style="border-top: 1px solid var(--border-color); padding-top: 14px; margin-top: 10px;">
                         <span style="font-size: 12px; font-weight: 700; color: var(--text-main); display:block; margin-bottom: 8px;">
-                            🧪 Test WhatsApp Gateway
+                            🧪 Test Email Delivery
                         </span>
                         <div style="display:flex; gap:8px;">
-                            <input type="tel" class="form-control" id="waTestPhone" placeholder="Enter your mobile number (e.g. +91 9876543210)">
-                            <button type="button" class="subpage-btn" id="btnRunTestMessage" style="white-space:nowrap;">
+                            <input type="email" class="form-control" id="testEmailRecipient" placeholder="Enter test recipient email (e.g. pastor@gmail.com)">
+                            <button type="button" class="subpage-btn" id="btnRunEmailTest" style="white-space:nowrap;">
                                 <i class="ri-send-plane-line"></i> Test Send
                             </button>
                         </div>
                     </div>
 
                     <div class="modal-footer" style="margin-top: 18px;">
-                        <button type="button" class="subpage-btn" data-close="whatsappSettingsModal">Cancel</button>
+                        <button type="button" class="subpage-btn" data-close="emailSettingsModal">Cancel</button>
                         <button type="submit" class="subpage-btn primary">
-                            <i class="ri-save-line"></i> Save Gateway Settings
+                            <i class="ri-save-line"></i> Save Email Settings
                         </button>
                     </div>
                 </form>
             </div>
         </div>
 
-        <!-- Modal: WhatsApp Delivery Audit Logs -->
-        <div class="modal-overlay" id="whatsappLogsModal">
+        <!-- Modal: Email Delivery Audit Logs -->
+        <div class="modal-overlay" id="emailLogsModal">
             <div class="modal-content" style="max-width: 750px;">
-                <button class="modal-close-btn" data-close="whatsappLogsModal"><i class="ri-close-line"></i></button>
+                <button class="modal-close-btn" data-close="emailLogsModal"><i class="ri-close-line"></i></button>
                 <div class="modal-header">
                     <h3 style="display:flex; align-items:center; gap:8px;">
-                        <i class="ri-history-line" style="color: var(--primary-teal); font-size:22px;"></i>
-                        <span>WhatsApp Delivery Audit History</span>
+                        <i class="ri-history-line" style="color: var(--primary-purple); font-size:22px;"></i>
+                        <span>Email Delivery Audit History</span>
                     </h3>
-                    <p>Live audit record of automated and on-demand scripture blessings dispatched</p>
+                    <p>Live audit record of automated and on-demand scripture blessings dispatched via email</p>
                 </div>
                 <div style="overflow-x: auto; max-height: 400px;">
                     <table class="wa-log-table">
@@ -1038,21 +1050,20 @@
                                 <th>Occasion</th>
                                 <th>Scripture</th>
                                 <th>Status</th>
-                                <th>Provider</th>
                             </tr>
                         </thead>
-                        <tbody id="waLogsTableBody">
+                        <tbody id="emailLogsTableBody">
                             <tr>
-                                <td colspan="6" style="text-align:center; color:var(--text-light); padding:20px;">
-                                    Loading delivery history...
+                                <td colspan="5" style="text-align:center; color:var(--text-light); padding:20px;">
+                                    Loading email delivery history...
                                 </td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
                 <div class="modal-footer" style="margin-top: 16px;">
-                    <button type="button" class="subpage-btn" data-close="whatsappLogsModal">Close</button>
-                    <button type="button" class="subpage-btn primary" id="btnRefreshWaLogs">
+                    <button type="button" class="subpage-btn" data-close="emailLogsModal">Close</button>
+                    <button type="button" class="subpage-btn primary" id="btnRefreshEmailLogs">
                         <i class="ri-refresh-line"></i> Refresh History
                     </button>
                 </div>

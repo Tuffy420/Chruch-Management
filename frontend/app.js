@@ -1038,47 +1038,49 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // ==========================================================================
-    // WHATSAPP WISHES & AUTOMATED DISPATCH ENGINE
+    // EMAIL BLESSINGS & AUTOMATED DISPATCH ENGINE
     // ==========================================================================
 
-    let currentWaMember = null;
-    let currentWaType = null;
+    let currentEmailMember = null;
+    let currentEmailType = null;
 
-    // Load and Open WhatsApp Settings Modal
-    window.openWhatsAppSettingsModal = async function() {
-        const modal = document.getElementById('whatsappSettingsModal');
+    // Load and Open Email / SMTP Settings Modal
+    window.openEmailSettingsModal = async function() {
+        const modal = document.getElementById('emailSettingsModal');
         try {
-            const res = await apiRequest('/whatsapp/config');
+            const res = await apiRequest('/email/config');
             if (res && res.data) {
                 const cfg = res.data;
-                document.getElementById('waProviderSelect').value = cfg.provider || 'ULTRAMSG';
-                document.getElementById('waInstanceId').value = cfg.instanceId || '';
-                document.getElementById('waApiToken').value = cfg.apiToken || '';
-                document.getElementById('waApiUrl').value = cfg.apiUrl || '';
-                document.getElementById('waPastorSignature').value = cfg.pastorSignature || 'Pastor & GraceConnect Church Family';
-                document.getElementById('waAutoSendDaily').checked = cfg.autoSendDaily !== false;
+                document.getElementById('smtpHost').value = cfg.smtpHost || 'smtp.gmail.com';
+                document.getElementById('smtpPort').value = cfg.smtpPort || 587;
+                document.getElementById('smtpUsername').value = cfg.smtpUsername || '';
+                document.getElementById('smtpPassword').value = cfg.smtpPassword || '';
+                document.getElementById('fromEmail').value = cfg.fromEmail || 'blessings@graceconnect.org';
+                document.getElementById('fromName').value = cfg.fromName || 'GraceConnect Church';
+                document.getElementById('emailPastorSignature').value = cfg.pastorSignature || 'Pastor & GraceConnect Church Family';
+                document.getElementById('emailAutoSendDaily').checked = cfg.autoSendDaily !== false;
             }
         } catch (e) {
-            console.warn('Could not load WhatsApp config:', e);
+            console.warn('Could not load email config:', e);
         }
         if (modal) modal.style.display = 'flex';
     };
 
-    // Load and Open WhatsApp Delivery Logs Modal
-    window.openWhatsAppLogsModal = async function() {
-        const modal = document.getElementById('whatsappLogsModal');
-        const tbody = document.getElementById('waLogsTableBody');
+    // Load and Open Email Delivery Audit Logs Modal
+    window.openEmailLogsModal = async function() {
+        const modal = document.getElementById('emailLogsModal');
+        const tbody = document.getElementById('emailLogsTableBody');
         if (tbody) {
-            tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:20px; color:var(--text-light);"><i class="ri-loader-4-line" style="animation:spin 1s infinite linear; display:inline-block;"></i> Loading delivery audit history...</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:20px; color:var(--text-light);"><i class="ri-loader-4-line" style="animation:spin 1s infinite linear; display:inline-block;"></i> Loading email delivery audit history...</td></tr>`;
         }
         if (modal) modal.style.display = 'flex';
 
         try {
-            const res = await apiRequest('/whatsapp/logs?size=30');
+            const res = await apiRequest('/email/logs?size=30');
             if (res && res.data && res.data.content) {
                 const logs = res.data.content;
                 if (logs.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:24px; color:var(--text-light);">No WhatsApp messages dispatched yet. Click "Auto-Dispatch" to send blessings!</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:24px; color:var(--text-light);">No email blessings dispatched yet. Click "Auto-Send" to dispatch!</td></tr>`;
                     return;
                 }
                 tbody.innerHTML = logs.map(l => {
@@ -1088,41 +1090,40 @@ document.addEventListener('DOMContentLoaded', () => {
                     return `
                         <tr>
                             <td><span style="font-size:11.5px; color:var(--text-light);">${timeFormatted}</span></td>
-                            <td><strong>${l.recipientName}</strong><br><span style="font-size:11px; color:var(--text-light);">${l.phoneNumber}</span></td>
+                            <td><strong>${l.recipientName}</strong><br><span style="font-size:11px; color:var(--text-light);">${l.recipientEmail}</span></td>
                             <td><span style="font-weight:600;">${occasionIcon}</span></td>
                             <td><code style="font-size:11px; background:rgba(0,0,0,0.04); padding:2px 6px; border-radius:4px;">${l.scriptureVerse || 'Scripture'}</code></td>
                             <td><span class="${statusClass}">${l.status}</span></td>
-                            <td><span style="font-size:11px; color:var(--text-light);">${l.provider || 'Gateway'}</span></td>
                         </tr>
                     `;
                 }).join('');
             }
         } catch (e) {
             if (tbody) {
-                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--primary-rose); padding:20px;">Failed to load delivery logs: ${e.message}</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--primary-rose); padding:20px;">Failed to load delivery logs: ${e.message}</td></tr>`;
             }
         }
     };
 
-    // Run Automated Batch Dispatch for Today
-    window.runAutoDispatchToday = async function() {
+    // Run Automated Batch Dispatch via Email for Today
+    window.runAutoDispatchEmailToday = async function() {
         const btns = [
-            document.getElementById('btnAutoDispatchBday'),
-            document.getElementById('btnAutoDispatchAnn'),
-            document.getElementById('btnQuickAutoDispatch')
+            document.getElementById('btnAutoDispatchBdayEmail'),
+            document.getElementById('btnAutoDispatchAnnEmail'),
+            document.getElementById('btnQuickAutoDispatchEmail')
         ].filter(Boolean);
 
         btns.forEach(b => {
             b.disabled = true;
-            b.innerHTML = `<i class="ri-loader-4-line" style="animation:spin 1s infinite linear;"></i> Dispatching...`;
+            b.innerHTML = `<i class="ri-loader-4-line" style="animation:spin 1s infinite linear;"></i> Dispatching Emails...`;
         });
 
         try {
-            const res = await apiRequest('/whatsapp/auto-dispatch-today', 'POST');
+            const res = await apiRequest('/email/auto-dispatch-today', 'POST');
             if (res && res.data) {
                 const d = res.data;
-                const msg = `Auto-dispatch completed! ✅ ${d.successfullySent} blessings dispatched, ${d.alreadySentToday} already sent, ${d.failed} failed.`;
-                showToast('WhatsApp Auto-Dispatcher', msg, d.failed > 0 ? 'warning' : 'success');
+                const msg = `Email dispatch complete! ✅ ${d.successfullySent} blessings sent, ${d.alreadySentToday} already sent, ${d.failed} failed.`;
+                showToast('Email Auto-Dispatcher', msg, d.failed > 0 ? 'warning' : 'success');
                 
                 // Refresh celebrations and tabs
                 fetchCelebrationRemindersTab('birthdays');
@@ -1130,43 +1131,45 @@ document.addEventListener('DOMContentLoaded', () => {
                 populateCelebrationWidget('birthdays');
             }
         } catch (e) {
-            showToast('Dispatch Error', e.message || 'Could not trigger auto-dispatch.', 'danger');
+            showToast('Dispatch Error', e.message || 'Could not trigger email auto-dispatch.', 'danger');
         } finally {
             btns.forEach(b => {
                 b.disabled = false;
-                b.innerHTML = `<i class="ri-flashlight-fill"></i> Auto-Send All`;
             });
-            if (document.getElementById('btnAutoDispatchBday')) {
-                document.getElementById('btnAutoDispatchBday').innerHTML = `<i class="ri-flashlight-fill"></i> Auto-Send Today's Wishes Now`;
+            if (document.getElementById('btnQuickAutoDispatchEmail')) {
+                document.getElementById('btnQuickAutoDispatchEmail').innerHTML = `<i class="ri-mail-send-line"></i> Auto-Send All`;
             }
-            if (document.getElementById('btnAutoDispatchAnn')) {
-                document.getElementById('btnAutoDispatchAnn').innerHTML = `<i class="ri-flashlight-fill"></i> Auto-Send Today's Wishes Now`;
+            if (document.getElementById('btnAutoDispatchBdayEmail')) {
+                document.getElementById('btnAutoDispatchBdayEmail').innerHTML = `<i class="ri-mail-send-line"></i> Auto-Send Today's Email Wishes`;
+            }
+            if (document.getElementById('btnAutoDispatchAnnEmail')) {
+                document.getElementById('btnAutoDispatchAnnEmail').innerHTML = `<i class="ri-mail-send-line"></i> Auto-Send Today's Email Wishes`;
             }
         }
     };
 
-    // Send single member wish via backend WhatsApp API
-    window.sendSingleWhatsAppApi = async function(memberId, occasion) {
-        showToast('Sending Blessing', 'Dispatching via Church WhatsApp Gateway...', 'info');
+    // Send single member wish via backend Email API
+    window.sendSingleEmailApi = async function(memberId, occasion) {
+        showToast('Sending Email Blessing', 'Dispatching via Church Mail Server...', 'info');
         try {
-            const res = await apiRequest(`/whatsapp/send-single?memberId=${memberId}&occasion=${occasion}`, 'POST');
+            const res = await apiRequest(`/email/send-single?memberId=${memberId}&occasion=${occasion}`, 'POST');
             if (res && res.data) {
                 const log = res.data;
                 const isSuccess = log.status === 'SENT' || log.status === 'SIMULATED';
                 showToast(
-                    isSuccess ? 'Blessing Dispatched!' : 'Gateway Alert',
+                    isSuccess ? 'Email Blessing Sent!' : 'Email Notice',
                     `${log.status === 'SENT' ? 'Sent' : 'Simulated'} for ${log.recipientName} (${log.scriptureVerse}).`,
-                    isSuccess ? 'success' : 'warning'
+                    isSuccess ? 'success' : 'info'
                 );
 
-                const modal = document.getElementById('whatsappWishModal');
+                const modal = document.getElementById('emailWishModal');
                 if (modal) modal.style.display = 'none';
 
                 fetchCelebrationRemindersTab('birthdays');
                 fetchCelebrationRemindersTab('anniversaries');
             }
         } catch (e) {
-            showToast('Dispatch Failed', e.message, 'danger');
+            showToast('Email Dispatch Failed', e.message, 'danger');
         }
     };
 
@@ -1187,15 +1190,6 @@ document.addEventListener('DOMContentLoaded', () => {
         '"Therefore what God has joined together, let no one separate." — Mark 10:9'
     ];
 
-    function cleanPhoneNumber(phone) {
-        if (!phone) return '';
-        let cleaned = phone.replace(/[^0-9]/g, '');
-        if (cleaned.length === 10) {
-            cleaned = '91' + cleaned;
-        }
-        return cleaned;
-    }
-
     function calculateAnniversaryYears(marriageDateStr) {
         if (!marriageDateStr) return '';
         try {
@@ -1212,69 +1206,76 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    window.openWhatsAppWishModal = function(type, memberId) {
+    window.openEmailWishModal = function(type, memberId) {
         const member = (state.members || []).find(m => String(m.id) === String(memberId));
         if (!member) {
             showToast('Member Notice', 'Member record not found in cache.', 'warning');
             return;
         }
 
-        currentWaMember = member;
-        currentWaType = type;
+        currentEmailMember = member;
+        currentEmailType = type;
 
-        const modal = document.getElementById('whatsappWishModal');
-        const titleEl = document.getElementById('waModalTitle');
-        const subtitleEl = document.getElementById('waModalSubtitle');
-        const recipientNameEl = document.getElementById('waRecipientName');
-        const recipientPhoneEl = document.getElementById('waRecipientPhone');
-        const celebrationTagEl = document.getElementById('waCelebrationTag');
-        const messageTextEl = document.getElementById('waMessageText');
-        const sendBtn = document.getElementById('waDirectSendBtn');
-        const copyBtn = document.getElementById('waCopyBtn');
-        const apiBtn = document.getElementById('waApiDispatchBtn');
+        const modal = document.getElementById('emailWishModal');
+        const titleEl = document.getElementById('emailModalTitle');
+        const subtitleEl = document.getElementById('emailModalSubtitle');
+        const recipientNameEl = document.getElementById('emailRecipientName');
+        const recipientEmailEl = document.getElementById('emailRecipientAddress');
+        const celebrationTagEl = document.getElementById('emailCelebrationTag');
+        const subjectInput = document.getElementById('emailSubjectText');
+        const messageTextEl = document.getElementById('emailMessageBodyText');
+        const mailtoBtn = document.getElementById('emailDirectMailtoBtn');
+        const copyBtn = document.getElementById('emailCopyBtn');
+        const apiBtn = document.getElementById('emailApiDispatchBtn');
 
-        const cleanPhone = cleanPhoneNumber(member.mobileNumber);
+        const memberEmail = (member.email && member.email.trim() !== '') ? member.email.trim() : '';
         recipientNameEl.textContent = `${member.firstName} ${member.lastName}`;
-        recipientPhoneEl.textContent = member.mobileNumber ? `📱 Mobile: ${member.mobileNumber}` : '⚠️ No mobile number registered';
+        recipientEmailEl.textContent = memberEmail ? `✉️ Email: ${memberEmail}` : '⚠️ No registered email on file';
 
+        let subject = '';
         let message = '';
         if (type === 'birthday') {
-            titleEl.textContent = 'Send Birthday Blessing via WhatsApp';
-            subtitleEl.textContent = `Dispatch personalized scripture birthday wish to ${member.firstName}`;
+            titleEl.textContent = 'Send Birthday Blessing via Email';
+            subtitleEl.textContent = `Dispatch personalized scripture birthday blessing to ${member.firstName}`;
             celebrationTagEl.textContent = 'Birthday Blessing 🎂';
-            celebrationTagEl.style.background = 'rgba(37, 211, 102, 0.12)';
-            celebrationTagEl.style.color = '#128C7E';
+            celebrationTagEl.style.background = 'rgba(99, 102, 241, 0.12)';
+            celebrationTagEl.style.color = '#4f46e5';
 
             const verse = BIBLE_VERSES_BDAY[Math.floor(Math.random() * BIBLE_VERSES_BDAY.length)];
-            message = `✨ *HAPPY BLESSED BIRTHDAY, ${member.firstName.toUpperCase()}!* 🎂🎉\n\nDear ${member.firstName},\nYour church family at GraceConnect warmly celebrates you today! We give profound thanks to Almighty God for the gift of your life and your fellowship.\n\n📖 *God's Word for You Today:*\n${verse}\n\n🕊️ *Spiritual Reflection:*\nWalk into this new chapter with boldness, knowing God's plans for your peace, joyful longevity, and divine favor will prevail.\n\n🙏 *Our Pastoral Prayer for You:*\nMay the LORD Almighty enlarge your borders, grant you robust health, and shower His heavenly peace upon you and your loved ones!\n\nWith love and blessings,\nPastor & GraceConnect Church Family ✝️❤️`;
+            subject = `✨ Happy Blessed Birthday, ${member.firstName}! 🎂 | GraceConnect Church`;
+            message = `Dearest ${member.firstName},\n\nYour church family at GraceConnect warmly rejoices with you today on your birthday! We give profound thanks to Almighty God for the gift of your life, your faith, and your fellowship in Christ.\n\n📖 God's Living Word for You Today:\n${verse}\n\n🕊️ Spiritual Reflection:\nWalk into this new chapter with boldness, knowing God's plans for your peace, joyful longevity, and divine favor will prevail.\n\n🙏 Our Pastoral Prayer for You:\nMay the LORD Almighty enlarge your borders, grant you robust health, and shower His heavenly peace upon you and your loved ones throughout this upcoming year!\n\nWith heartfelt love & continuous prayers,\nPastor & GraceConnect Church Family ✝️❤️`;
         } else {
             const milestone = calculateAnniversaryYears(member.marriageDate);
-            titleEl.textContent = 'Send Anniversary Blessing via WhatsApp';
-            subtitleEl.textContent = `Dispatch anniversary greeting and scripture to ${member.firstName} & spouse`;
+            titleEl.textContent = 'Send Anniversary Blessing via Email';
+            subtitleEl.textContent = `Dispatch wedding anniversary blessing and scripture to ${member.firstName} & spouse`;
             celebrationTagEl.textContent = `${milestone || 'Happy'} Anniversary 💍`;
             celebrationTagEl.style.background = 'rgba(244, 63, 94, 0.12)';
             celebrationTagEl.style.color = '#f43f5e';
 
             const verse = BIBLE_VERSES_ANNIVERSARY[Math.floor(Math.random() * BIBLE_VERSES_ANNIVERSARY.length)];
-            message = `💍 *HAPPY ${milestone ? milestone.toUpperCase() + ' ' : ''}WEDDING ANNIVERSARY!* 🕊️🌹\n\nDear ${member.firstName} & family,\nWarmest Christian congratulations on your anniversary from your church family at GraceConnect!\n\n📖 *God's Word for Your Holy Covenant:*\n${verse}\n\n🕊️ *Spiritual Reflection:*\nWith Christ as the center of your marriage, no season can unravel your bond. May your home remain a haven of joyful peace, mutual honor, and enduring grace.\n\n🙏 *Our Pastoral Prayer for Your Home:*\nMay the Almighty multiply your joy, bless your generations, and establish your home as a living testimony of divine love.\n\nWith heartfelt love & prayers,\nPastor & GraceConnect Church Family ✝️❤️`;
+            subject = `💍 Happy ${milestone ? milestone + ' ' : ''}Wedding Anniversary, ${member.firstName} & Family! 🕊️ | GraceConnect Church`;
+            message = `Dearest ${member.firstName} & Family,\n\nGrace and peace to you in the name of our Lord Jesus Christ! We rejoice with you today as you celebrate God's steadfast faithfulness in your holy covenant of marriage.\n\n📖 God's Word for Your Holy Covenant:\n${verse}\n\n🕊️ Spiritual Reflection:\nWith Christ as the center of your marriage, no season can unravel your bond. May your home remain a haven of joyful peace, mutual honor, and enduring grace.\n\n🙏 Our Pastoral Prayer for Your Home:\nMay the Almighty multiply your joy, bless your generations, and establish your home as a living testimony of divine love.\n\nWith heartfelt love & prayers,\nPastor & GraceConnect Church Family ✝️❤️`;
         }
 
+        subjectInput.value = subject;
         messageTextEl.value = message;
 
-        function updateSendLink() {
-            const currentMsg = encodeURIComponent(messageTextEl.value);
-            if (cleanPhone) {
-                sendBtn.href = `https://wa.me/${cleanPhone}?text=${currentMsg}`;
+        function updateMailtoLink() {
+            const curSubj = encodeURIComponent(subjectInput.value);
+            const curMsg = encodeURIComponent(messageTextEl.value);
+            if (memberEmail) {
+                mailtoBtn.href = `mailto:${memberEmail}?subject=${curSubj}&body=${curMsg}`;
             } else {
-                sendBtn.href = `https://wa.me/?text=${currentMsg}`;
+                mailtoBtn.href = `mailto:?subject=${curSubj}&body=${curMsg}`;
             }
         }
-        updateSendLink();
-        messageTextEl.oninput = updateSendLink;
+        updateMailtoLink();
+        subjectInput.oninput = updateMailtoLink;
+        messageTextEl.oninput = updateMailtoLink;
 
         copyBtn.onclick = () => {
-            navigator.clipboard.writeText(messageTextEl.value).then(() => {
-                showToast('Copied!', 'Blessing message copied to clipboard.');
+            navigator.clipboard.writeText(`${subjectInput.value}\n\n${messageTextEl.value}`).then(() => {
+                showToast('Copied!', 'Email subject and blessing message copied.');
             }).catch(() => {
                 showToast('Copied', 'Ready to paste.');
             });
@@ -1282,7 +1283,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (apiBtn) {
             apiBtn.onclick = () => {
-                window.sendSingleWhatsAppApi(member.id, type.toUpperCase());
+                window.sendSingleEmailApi(member.id, type.toUpperCase());
             };
         }
 
@@ -1292,7 +1293,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let activeBdayFilter = 'all';
     let activeAnnFilter = 'all';
 
-    // Renders custom lists for birthdays / anniversaries tabs with live WhatsApp triggers
+    // Renders custom lists for birthdays / anniversaries tabs with live Email blessing triggers
     async function fetchCelebrationRemindersTab(type, search = '') {
         const bdayContainer = document.getElementById('birthdaysListContainer');
         const annContainer = document.getElementById('anniversariesListContainer');
@@ -1343,18 +1344,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     const dobParts = m.dob.split('-');
                     const isToday = parseInt(dobParts[1], 10) === currentMonth && parseInt(dobParts[2], 10) === currentDay;
                     const badgeText = isToday ? '🎉 Birthday Today!' : `DOB: ${m.dob}`;
-                    const badgeBg = isToday ? 'rgba(37, 211, 102, 0.15)' : 'rgba(139, 92, 246, 0.08)';
-                    const badgeColor = isToday ? '#128C7E' : 'var(--primary-purple)';
+                    const badgeBg = isToday ? 'rgba(99, 102, 241, 0.15)' : 'rgba(139, 92, 246, 0.08)';
+                    const badgeColor = isToday ? '#4f46e5' : 'var(--primary-purple)';
 
                     const actionButtons = isToday
-                        ? `<button class="btn-send-api-single" onclick="sendSingleWhatsAppApi('${m.id}', 'BIRTHDAY')" title="Send automatically via church WhatsApp API">
-                                <i class="ri-flashlight-fill"></i> Auto-Send
+                        ? `<button class="btn-send-api-single" onclick="sendSingleEmailApi('${m.id}', 'BIRTHDAY')" title="Send automatically via church Mail server">
+                                <i class="ri-mail-send-line"></i> Auto-Send Email
                            </button>
-                           <button class="btn-whatsapp btn-whatsapp-sm" onclick="openWhatsAppWishModal('birthday', '${m.id}')">
-                               <i class="ri-whatsapp-line"></i> Web / View
+                           <button class="btn-email btn-email-sm" onclick="openEmailWishModal('birthday', '${m.id}')">
+                               <i class="ri-mail-open-line"></i> Mail App / Preview
                            </button>`
-                        : `<button class="btn-whatsapp btn-whatsapp-sm" onclick="openWhatsAppWishModal('birthday', '${m.id}')">
-                               <i class="ri-whatsapp-line"></i> WhatsApp Wish
+                        : `<button class="btn-email btn-email-sm" onclick="openEmailWishModal('birthday', '${m.id}')">
+                               <i class="ri-mail-send-line"></i> Email Blessing
                            </button>`;
 
                     return `
@@ -1369,7 +1370,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                         ${badgeText}
                                     </span>
                                 </div>
-                                <span class="record-subtitle"><i class="ri-phone-line"></i> ${m.mobileNumber || 'No phone'}</span>
+                                <span class="record-subtitle"><i class="ri-mail-line"></i> ${m.email || 'No email registered'}</span>
                                 <div style="margin-top:12px; display:flex; gap:8px; align-items:center;">
                                     ${actionButtons}
                                 </div>
@@ -1411,14 +1412,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     const badgeText = isToday ? `💍 Anniversary Today! (${milestone})` : `${milestone || ''} Anniversary • ${m.marriageDate}`;
 
                     const actionButtons = isToday
-                        ? `<button class="btn-send-api-single" onclick="sendSingleWhatsAppApi('${m.id}', 'ANNIVERSARY')" title="Send automatically via church WhatsApp API">
-                                <i class="ri-flashlight-fill"></i> Auto-Send
+                        ? `<button class="btn-send-api-single" onclick="sendSingleEmailApi('${m.id}', 'ANNIVERSARY')" title="Send automatically via church Mail server">
+                                <i class="ri-mail-send-line"></i> Auto-Send Email
                            </button>
-                           <button class="btn-whatsapp btn-whatsapp-sm" onclick="openWhatsAppWishModal('anniversary', '${m.id}')">
-                               <i class="ri-whatsapp-line"></i> Web / View
+                           <button class="btn-email btn-email-sm" onclick="openEmailWishModal('anniversary', '${m.id}')">
+                               <i class="ri-mail-open-line"></i> Mail App / Preview
                            </button>`
-                        : `<button class="btn-whatsapp btn-whatsapp-sm" onclick="openWhatsAppWishModal('anniversary', '${m.id}')">
-                               <i class="ri-whatsapp-line"></i> WhatsApp Wish
+                        : `<button class="btn-email btn-email-sm" onclick="openEmailWishModal('anniversary', '${m.id}')">
+                               <i class="ri-mail-send-line"></i> Email Blessing
                            </button>`;
 
                     return `
@@ -1433,7 +1434,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                         ${badgeText}
                                     </span>
                                 </div>
-                                <span class="record-subtitle"><i class="ri-calendar-line"></i> Married on: ${m.marriageDate} • 📱 ${m.mobileNumber || 'No phone'}</span>
+                                <span class="record-subtitle"><i class="ri-calendar-line"></i> Married on: ${m.marriageDate} • ✉️ ${m.email || 'No email registered'}</span>
                                 <div style="margin-top:12px; display:flex; gap:8px;">
                                     ${actionButtons}
                                 </div>
@@ -1510,8 +1511,8 @@ document.addEventListener('DOMContentLoaded', () => {
                                     <i class="ri-cake-2-line"></i> ${isToday ? '<strong style="color:#128C7E;">🎉 Today!</strong>' : m.dob}
                                 </span>
                             </div>
-                            <button class="reminder-action-btn" title="Send WhatsApp Blessing" style="background:#25D366; color:white; border-color:#25D366;" onclick="openWhatsAppWishModal('birthday', '${m.id}')">
-                                <i class="ri-whatsapp-line"></i>
+                            <button class="reminder-action-btn" title="Send Email Blessing" style="background:linear-gradient(135deg, #6366f1, #4f46e5); color:white; border-color:#6366f1;" onclick="openEmailWishModal('birthday', '${m.id}')">
+                                <i class="ri-mail-send-line"></i>
                             </button>
                         </div>
                     `;
@@ -1537,8 +1538,8 @@ document.addEventListener('DOMContentLoaded', () => {
                                     <i class="ri-calendar-line"></i> ${isToday ? '<strong style="color:var(--primary-rose);">💍 Today!</strong>' : (milestone ? milestone + ' Anniv.' : m.marriageDate)}
                                 </span>
                             </div>
-                            <button class="reminder-action-btn" title="Send Anniversary WhatsApp Wish" style="background:#25D366; color:white; border-color:#25D366;" onclick="openWhatsAppWishModal('anniversary', '${m.id}')">
-                                <i class="ri-whatsapp-line"></i>
+                            <button class="reminder-action-btn" title="Send Anniversary Email Blessing" style="background:linear-gradient(135deg, #6366f1, #4f46e5); color:white; border-color:#6366f1;" onclick="openEmailWishModal('anniversary', '${m.id}')">
+                                <i class="ri-mail-send-line"></i>
                             </button>
                         </div>
                     `;
@@ -1885,7 +1886,9 @@ document.addEventListener('DOMContentLoaded', () => {
         addMember: document.getElementById('addMemberModal'),
         recordDonation: document.getElementById('recordDonationModal'),
         addEvent: document.getElementById('addEventModal'),
-        whatsappWish: document.getElementById('whatsappWishModal')
+        emailWish: document.getElementById('emailWishModal'),
+        emailSettings: document.getElementById('emailSettingsModal'),
+        emailLogs: document.getElementById('emailLogsModal')
     };
 
     function openModal(modalId) {
@@ -2173,74 +2176,77 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ==========================================================================
-    // WHATSAPP AUTOMATION EVENT LISTENERS
+    // EMAIL BLESSINGS AUTOMATION EVENT LISTENERS
     // ==========================================================================
-    const btnAutoDispatchBday = document.getElementById('btnAutoDispatchBday');
-    if (btnAutoDispatchBday) {
-        btnAutoDispatchBday.addEventListener('click', window.runAutoDispatchToday);
+    const btnAutoDispatchBdayEmail = document.getElementById('btnAutoDispatchBdayEmail');
+    if (btnAutoDispatchBdayEmail) {
+        btnAutoDispatchBdayEmail.addEventListener('click', window.runAutoDispatchEmailToday);
     }
 
-    const btnAutoDispatchAnn = document.getElementById('btnAutoDispatchAnn');
-    if (btnAutoDispatchAnn) {
-        btnAutoDispatchAnn.addEventListener('click', window.runAutoDispatchToday);
+    const btnAutoDispatchAnnEmail = document.getElementById('btnAutoDispatchAnnEmail');
+    if (btnAutoDispatchAnnEmail) {
+        btnAutoDispatchAnnEmail.addEventListener('click', window.runAutoDispatchEmailToday);
     }
 
-    const btnQuickAutoDispatch = document.getElementById('btnQuickAutoDispatch');
-    if (btnQuickAutoDispatch) {
-        btnQuickAutoDispatch.addEventListener('click', window.runAutoDispatchToday);
+    const btnQuickAutoDispatchEmail = document.getElementById('btnQuickAutoDispatchEmail');
+    if (btnQuickAutoDispatchEmail) {
+        btnQuickAutoDispatchEmail.addEventListener('click', window.runAutoDispatchEmailToday);
     }
 
-    const whatsappSettingsForm = document.getElementById('whatsappSettingsForm');
-    if (whatsappSettingsForm) {
-        whatsappSettingsForm.addEventListener('submit', async (e) => {
+    const emailSettingsForm = document.getElementById('emailSettingsForm');
+    if (emailSettingsForm) {
+        emailSettingsForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const provider = document.getElementById('waProviderSelect').value;
-            const instanceId = document.getElementById('waInstanceId').value.trim();
-            const apiToken = document.getElementById('waApiToken').value.trim();
-            const apiUrl = document.getElementById('waApiUrl').value.trim();
-            const pastorSignature = document.getElementById('waPastorSignature').value.trim();
-            const autoSendDaily = document.getElementById('waAutoSendDaily').checked;
+            const smtpHost = document.getElementById('smtpHost').value.trim();
+            const smtpPort = parseInt(document.getElementById('smtpPort').value, 10) || 587;
+            const smtpUsername = document.getElementById('smtpUsername').value.trim();
+            const smtpPassword = document.getElementById('smtpPassword').value.trim();
+            const fromEmail = document.getElementById('fromEmail').value.trim();
+            const fromName = document.getElementById('fromName').value.trim();
+            const pastorSignature = document.getElementById('emailPastorSignature').value.trim();
+            const autoSendDaily = document.getElementById('emailAutoSendDaily').checked;
 
             try {
-                await apiRequest('/whatsapp/config', 'POST', {
-                    provider, instanceId, apiToken, apiUrl, pastorSignature, autoSendDaily
+                await apiRequest('/email/config', 'POST', {
+                    smtpHost, smtpPort, smtpUsername, smtpPassword,
+                    fromEmail, fromName, pastorSignature, autoSendDaily
                 });
-                closeModal('whatsappSettings');
-                showToast('Settings Saved', 'Church WhatsApp gateway configured successfully!', 'success');
+                closeModal('emailSettings');
+                showToast('Settings Saved', 'Church email / SMTP server settings updated successfully!', 'success');
             } catch (err) {
                 showToast('Save Failed', err.message, 'danger');
             }
         });
     }
 
-    const btnRunTestMessage = document.getElementById('btnRunTestMessage');
-    if (btnRunTestMessage) {
-        btnRunTestMessage.addEventListener('click', async () => {
-            const phone = document.getElementById('waTestPhone').value.trim();
-            if (!phone) {
-                showToast('Input Required', 'Please enter a test mobile phone number.', 'warning');
+    const btnRunEmailTest = document.getElementById('btnRunEmailTest');
+    if (btnRunEmailTest) {
+        btnRunEmailTest.addEventListener('click', async () => {
+            const recipient = document.getElementById('testEmailRecipient').value.trim();
+            if (!recipient) {
+                showToast('Input Required', 'Please enter a test recipient email address.', 'warning');
                 return;
             }
-            btnRunTestMessage.disabled = true;
-            btnRunTestMessage.innerHTML = `<i class="ri-loader-4-line" style="animation:spin 1s infinite linear;"></i> Sending...`;
+            btnRunEmailTest.disabled = true;
+            btnRunEmailTest.innerHTML = `<i class="ri-loader-4-line" style="animation:spin 1s infinite linear;"></i> Sending...`;
             try {
-                const res = await apiRequest('/whatsapp/test-send', 'POST', { phoneNumber: phone });
+                const res = await apiRequest('/email/test-send', 'POST', { recipientEmail: recipient });
                 if (res && res.data) {
-                    showToast('Test Result', `Dispatched status: ${res.data.status} via ${res.data.provider}`, res.data.status === 'SENT' ? 'success' : 'info');
+                    showToast('Test Result', `Email status: ${res.data.status}`, res.data.status === 'SENT' ? 'success' : 'info');
                 }
             } catch (err) {
                 showToast('Test Failed', err.message, 'danger');
             } finally {
-                btnRunTestMessage.disabled = false;
-                btnRunTestMessage.innerHTML = `<i class="ri-send-plane-line"></i> Test Send`;
+                btnRunEmailTest.disabled = false;
+                btnRunEmailTest.innerHTML = `<i class="ri-send-plane-line"></i> Test Send`;
             }
         });
     }
 
-    const btnRefreshWaLogs = document.getElementById('btnRefreshWaLogs');
-    if (btnRefreshWaLogs) {
-        btnRefreshWaLogs.addEventListener('click', () => {
-            window.openWhatsAppLogsModal();
+    const btnRefreshEmailLogs = document.getElementById('btnRefreshEmailLogs');
+    if (btnRefreshEmailLogs) {
+        btnRefreshEmailLogs.addEventListener('click', () => {
+            window.openEmailLogsModal();
         });
     }
 

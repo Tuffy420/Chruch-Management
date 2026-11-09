@@ -1939,10 +1939,10 @@ body {
 }
 
 /* ==========================================================================
-   WHATSAPP WISHES & BLESSINGS STYLING
+   EMAIL BLESSINGS & CELEBRATIONS STYLING
    ========================================================================== */
-.btn-whatsapp {
-    background: linear-gradient(135deg, #25D366, #128C7E);
+.btn-email {
+    background: linear-gradient(135deg, #6366f1, #4f46e5);
     color: #ffffff !important;
     border: none;
     border-radius: var(--radius-sm);
@@ -1953,21 +1953,21 @@ body {
     align-items: center;
     gap: 6px;
     cursor: pointer;
-    box-shadow: 0 4px 14px rgba(37, 211, 102, 0.3);
+    box-shadow: 0 4px 14px rgba(99, 102, 241, 0.25);
     transition: transform var(--transition-fast), box-shadow var(--transition-fast);
     text-decoration: none;
 }
-.btn-whatsapp:hover {
+.btn-email:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 18px rgba(37, 211, 102, 0.45);
-    background: linear-gradient(135deg, #2ae06d, #0f7a6e);
+    box-shadow: 0 6px 18px rgba(99, 102, 241, 0.4);
+    background: linear-gradient(135deg, #4f46e5, #4338ca);
 }
-.btn-whatsapp-sm {
+.btn-email-sm {
     padding: 4px 10px;
     font-size: 11px;
     border-radius: 6px;
 }
-.btn-whatsapp i {
+.btn-email i {
     font-size: 15px;
 }
 
@@ -2171,11 +2171,11 @@ body {
 }
 
 /* ==========================================================================
-   WHATSAPP AUTOMATION CENTER & MODALS
+   EMAIL AUTOMATION CENTER & MODALS
    ========================================================================== */
-.whatsapp-automation-banner {
-    background: linear-gradient(135deg, rgba(37, 211, 102, 0.08), rgba(139, 92, 246, 0.08));
-    border: 1px solid rgba(37, 211, 102, 0.25);
+.email-automation-banner {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(139, 92, 246, 0.08));
+    border: 1px solid rgba(99, 102, 241, 0.25);
     border-radius: var(--radius-md);
     padding: 16px 20px;
     margin-bottom: 20px;
@@ -2199,31 +2199,31 @@ body {
     gap: 8px;
     font-size: 13px;
     font-weight: 600;
-    color: #128C7E;
+    color: #4f46e5;
 }
 
 .pulse-dot {
     width: 9px;
     height: 9px;
-    background-color: #25D366;
+    background-color: #6366f1;
     border-radius: 50%;
     display: inline-block;
-    box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.7);
-    animation: pulse-green 2s infinite;
+    box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.7);
+    animation: pulse-purple 2s infinite;
 }
 
-@keyframes pulse-green {
+@keyframes pulse-purple {
     0% {
         transform: scale(0.95);
-        box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.7);
+        box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.7);
     }
     70% {
         transform: scale(1);
-        box-shadow: 0 0 0 8px rgba(37, 211, 102, 0);
+        box-shadow: 0 0 0 8px rgba(99, 102, 241, 0);
     }
     100% {
         transform: scale(0.95);
-        box-shadow: 0 0 0 0 rgba(37, 211, 102, 0);
+        box-shadow: 0 0 0 0 rgba(99, 102, 241, 0);
     }
 }
 
@@ -2241,7 +2241,7 @@ body {
 }
 
 .btn-auto-dispatch {
-    background: linear-gradient(135deg, #10b981, #059669);
+    background: linear-gradient(135deg, #6366f1, #4f46e5);
     color: white;
     border: none;
     border-radius: var(--radius-sm);
@@ -2252,22 +2252,36 @@ body {
     align-items: center;
     gap: 6px;
     cursor: pointer;
-    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
     transition: all var(--transition-fast);
 }
 
 .btn-auto-dispatch:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(16, 185, 129, 0.45);
-    background: linear-gradient(135deg, #059669, #047857);
+    box-shadow: 0 6px 16px rgba(99, 102, 241, 0.45);
+    background: linear-gradient(135deg, #4f46e5, #4338ca);
 }
 
-.btn-wa-settings, .btn-wa-logs {
+.btn-wa-settings, .btn-wa-logs, .btn-email-settings, .btn-email-logs {
     background: white;
     border: 1px solid var(--border-color);
     border-radius: var(--radius-sm);
     padding: 8px 14px;
     font-size: 12px;
+    font-weight: 600;
+    color: var(--text-main);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.btn-email-settings:hover, .btn-email-logs:hover, .btn-wa-settings:hover, .btn-wa-logs:hover {
+    border-color: var(--primary-purple);
+    color: var(--primary-purple);
+    background: rgba(139, 92, 246, 0.05);
+}
     font-weight: 600;
     color: var(--text-main);
     display: inline-flex;

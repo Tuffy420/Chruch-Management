@@ -9,7 +9,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class WhatsAppTestRequest {
-    private String phoneNumber;
-    private String customMessage;
+public class EmailTestRequest {
+    private String recipientEmail;
+    private String subject;
+    private String messageBody;
 }

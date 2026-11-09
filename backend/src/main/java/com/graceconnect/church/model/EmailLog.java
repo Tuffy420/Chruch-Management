@@ -6,12 +6,12 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "whatsapp_logs")
+@Table(name = "email_logs")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class WhatsAppLog {
+public class EmailLog {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -21,26 +21,23 @@ public class WhatsAppLog {
     @Column(name = "recipient_name", nullable = false)
     private String recipientName;
 
-    @Column(name = "phone_number", nullable = false)
-    private String phoneNumber;
+    @Column(name = "recipient_email", nullable = false)
+    private String recipientEmail;
 
     @Column(name = "occasion", nullable = false)
     private String occasion; // BIRTHDAY, ANNIVERSARY, TEST
 
+    @Column(name = "subject", nullable = false)
+    private String subject;
+
     @Column(name = "scripture_verse")
     private String scriptureVerse; // e.g. Jeremiah 29:11
 
-    @Column(name = "message_text", columnDefinition = "TEXT")
-    private String messageText;
+    @Column(name = "message_body", columnDefinition = "TEXT")
+    private String messageBody;
 
     @Column(name = "status", nullable = false)
     private String status; // SENT, FAILED, SIMULATED
-
-    @Column(name = "provider")
-    private String provider; // ULTRAMSG, TWILIO, META_CLOUD, WEBHOOK, SIMULATOR
-
-    @Column(name = "response_payload", columnDefinition = "TEXT")
-    private String responsePayload;
 
     @Column(name = "error_message")
     private String errorMessage;

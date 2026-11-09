@@ -11,12 +11,11 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class WhatsAppSendResultDto {
+public class EmailSendResultDto {
     private int totalFound;
     private int successfullySent;
     private int failed;
     private int alreadySentToday;
-    private String providerUsed;
     private String summaryMessage;
     private List<String> dispatchedNames;
 }

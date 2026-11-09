@@ -14,12 +14,14 @@ import java.time.LocalDate;
 public class CelebrationItemDto {
     private Long memberId;
     private String fullName;
+    private String email;
     private String mobileNumber;
     private String profilePhoto;
     private String familyName;
     private String occasion; // BIRTHDAY or ANNIVERSARY
     private LocalDate celebrationDate;
     private Integer milestoneYears; // Age or Years of Marriage
+    private String emailSubject;
     private String scriptureRef;
     private String scriptureText;
     private String devotionalReflection;
